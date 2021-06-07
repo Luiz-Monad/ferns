@@ -47,8 +47,6 @@ class homography_estimator
   bool * inliers;
   int number_of_inliers;
 
-  int verbose_level;
-
   //private:
   void normalize(void);
   float scale, scalep;

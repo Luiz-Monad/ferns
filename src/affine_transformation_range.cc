@@ -21,10 +21,13 @@
   Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 #include <iostream>
-using namespace std;
 
+#include "logger.h"
 #include "general.h"
 #include "affine_transformation_range.h"
+
+using namespace std;
+using namespace plog;
 
 affine_transformation_range::affine_transformation_range(void)
 {
@@ -38,7 +41,7 @@ affine_transformation_range::~affine_transformation_range(void)
 {
 }
 
-void affine_transformation_range::load(ifstream & f)
+void affine_transformation_range::load(istream & f)
 {
   f >> min_theta >> max_theta;
   f >> min_phi >> max_phi;
@@ -48,16 +51,16 @@ void affine_transformation_range::load(ifstream & f)
 
   if (scaling_method == 1) f >> min_l1_l2 >> max_l1_l2;
 
-  cout << "> [affine_transformation_range::load] min_theta = " << min_theta << endl;
-  cout << "> [affine_transformation_range::load] max_lambda2 = " << max_lambda2 << endl;
+  log_verb << "[affine_transformation_range::load]" << "min_theta = " << min_theta << endl;
+  log_verb << "[affine_transformation_range::load]" << "max_lambda2 = " << max_lambda2 << endl;
 
   if (scaling_method == 1) {
-    cout << "> [affine_transformation_range::load] min_l1_l2 = " << min_l1_l2 << endl;
-    cout << "> [affine_transformation_range::load] max_l1_l2 = " << max_l1_l2 << endl;
+    log_verb << "[affine_transformation_range::load]" << "min_l1_l2 = " << min_l1_l2 << endl;
+    log_verb << "[affine_transformation_range::load]" << "max_l1_l2 = " << max_l1_l2 << endl;
   }
 }
 
-void affine_transformation_range::load_in_degrees(ifstream & f)
+void affine_transformation_range::load_in_degrees(istream & f)
 {
   f >> min_theta >> max_theta;
 
@@ -76,7 +79,7 @@ void affine_transformation_range::load_in_degrees(ifstream & f)
   if (scaling_method == 1) f >> min_l1_l2 >> max_l1_l2;
 }
 
-void affine_transformation_range::save(ofstream & f)
+void affine_transformation_range::save(ostream & f)
 {
   f << min_theta << " " << max_theta << endl;
   f << min_phi << " " <<  max_phi << endl;
@@ -114,8 +117,8 @@ void affine_transformation_range::independent_scaling(float p_min_lambda1, float
 
 //! Constrained scaling. Adds a constraint on the range of the product of l1 and l2.
 void affine_transformation_range::constrained_scaling(float p_min_lambda1, float p_max_lambda1,
-						      float p_min_lambda2, float p_max_lambda2,
-						      float p_min_l1_l2,   float p_max_l1_l2)
+                                                      float p_min_lambda2, float p_max_lambda2,
+                                                      float p_min_l1_l2,   float p_max_l1_l2)
 {
   scaling_method = 1;
 
@@ -131,7 +134,7 @@ void affine_transformation_range::constrained_scaling(float p_min_lambda1, float
 
 
 void affine_transformation_range::generate_random_parameters(float & theta, float & phi, 
-							     float & lambda1, float & lambda2)
+                                                             float & lambda1, float & lambda2)
 {
   theta = min_theta + rand_01() * (max_theta - min_theta);
   phi   = min_phi   + rand_01() * (max_phi - min_phi);

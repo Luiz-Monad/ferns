@@ -23,11 +23,14 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
-using namespace std;
 
+#include "logger.h"
 #include "mcv.h"
 #include "buffer_management.h"
 #include "pyr_yape06.h"
+
+using namespace std;
+using namespace plog;
 
 const int pyr_yape06::Maximum_number_of_points = 50000;
 
@@ -40,7 +43,7 @@ const int pyr_yape06::R = 5, pyr_yape06::Rp = 3; // -> 3890 to 1479
 pyr_yape06::pyr_yape06(void)
 {
   all_keypoints = new keypoint[Maximum_number_of_points];
-  laplacian = 0;
+  laplacian = nullptr;
 
   //   set_laplacian_threshold(10);
   //   set_min_eigenvalue_threshold(10);
@@ -77,16 +80,16 @@ void pyr_yape06::compute_Ds(IplImage * smoothed_image)
 }
 
 inline void pyr_yape06::compute_laplacian(IplImage * smoothed_image, IplImage * laplacian,
-					  const int w, const int h,
-					  const int Dxx, const int Dyy,
-					  const int /*Dxy*/, const int /*Dyx*/)
+                                          const int w, const int h,
+                                          const int Dxx, const int Dyy,
+                                          const int /*Dxy*/, const int /*Dyx*/)
 {
   for(int y = Dxx; y < h - Dxx; y++) {
     unsigned char * image_row = mcvRow(smoothed_image, y, unsigned char);
     int * laplacian_row = mcvRow(laplacian, y, int);
     for(int x = w - Dxx; x >= Dxx; x--) {
       *laplacian_row = -4 * *image_row +
-	*(image_row + Dxx) + *(image_row - Dxx) + *(image_row + Dyy) + *(image_row - Dyy);
+        *(image_row + Dxx) + *(image_row - Dxx) + *(image_row + Dyy) + *(image_row - Dyy);
 
       laplacian_row++;
       image_row++;
@@ -122,8 +125,9 @@ void pyr_yape06::compute_laplacian(IplImage * smoothed_image)
   else {
     static bool warned = false;
     if (!warned) {
-      cerr << ">! Warning: pyr_yape06 not optimized for " << w << " x " << h << " images." << endl;
-      cerr << ">! You may want add this size to the pyr_yape06::compute_laplacian member function for more efficiency." << endl;
+      log_warn << "[pyr_yape06::compute_laplacian]"
+               << "not optimized for " << w << " x " << h << " images." << endl
+               << "You may want add this size for more efficiency." << endl;
       warned = true;
     }
 
@@ -143,7 +147,7 @@ inline int pyr_yape06::hessian_min_eigen_value(IplImage * smoothed_image, const 
 }
 
 inline bool pyr_yape06::laplacian_hessian_criteria(IplImage * laplacian,
-						   const int x, const int y)
+                                                   const int x, const int y)
 {
   int * image_ptr = mcvRow(laplacian, y, int) + x;
   const int D = laplacian->widthStep / 4;
@@ -155,7 +159,7 @@ inline bool pyr_yape06::laplacian_hessian_criteria(IplImage * laplacian,
 
   const float k = 0.1;
 
-  //   cout << det << " " << trace * trace << endl;
+  log_debug << "[pyr_yape06::laplacian_hessian_criteria]" << det << " " << trace * trace << endl;
 
   return float(det) > k * float(trace * trace);
 }
@@ -174,31 +178,31 @@ void pyr_yape06::add_local_extrema(fine_gaussian_pyramid * pyramid, IplImage * s
     int * lap_row = mcvRow(laplacian, y, int);
     for(int x = 1; x < w - 1; x++) {
       if ((lap_row[x] < -lap_threshold &&
-	   lap_row[x] < lap_row[x - 1]      && lap_row[x] < lap_row[x + 1] &&
-	   lap_row[x] < lap_row[x - dy]     && lap_row[x] < lap_row[x + dy] &&
-	   lap_row[x] < lap_row[x - dy - 1] && lap_row[x] < lap_row[x + dy - 1] &&
-	   lap_row[x] < lap_row[x - dy + 1] && lap_row[x] < lap_row[x + dy + 1])
-	  ||
-	  (lap_row[x] > +lap_threshold &&
-	   lap_row[x] > lap_row[x - 1]      && lap_row[x] > lap_row[x + 1] &&
-	   lap_row[x] > lap_row[x - dy]     && lap_row[x] > lap_row[x + dy] &&
-	   lap_row[x] > lap_row[x - dy - 1] && lap_row[x] > lap_row[x + dy - 1] &&
-	   lap_row[x] > lap_row[x - dy + 1] && lap_row[x] > lap_row[x + dy + 1])
-	  )
-	{
-	  const int min_eigen_value = hessian_min_eigen_value(smoothed_image, lap_row[x], x, y);
-	  //	  cout << x << "x" << y << " -> " << lap_row[x] << "; " << min_eigen_value << endl;
-	  if (min_eigen_value > min_ev_threshold) {
-	    //if (laplacian_hessian_criteria(laplacian, x, y)) {
-	    all_keypoints[number_of_points].u = float(x - (pyramid->border_size >> scale));
-	    all_keypoints[number_of_points].v = float(y - (pyramid->border_size >> scale));
-	    all_keypoints[number_of_points].scale = float(scale);
-	    all_keypoints[number_of_points].score = float(min_eigen_value);
+           lap_row[x] < lap_row[x - 1]      && lap_row[x] < lap_row[x + 1] &&
+           lap_row[x] < lap_row[x - dy]     && lap_row[x] < lap_row[x + dy] &&
+           lap_row[x] < lap_row[x - dy - 1] && lap_row[x] < lap_row[x + dy - 1] &&
+           lap_row[x] < lap_row[x - dy + 1] && lap_row[x] < lap_row[x + dy + 1])
+          ||
+          (lap_row[x] > +lap_threshold &&
+           lap_row[x] > lap_row[x - 1]      && lap_row[x] > lap_row[x + 1] &&
+           lap_row[x] > lap_row[x - dy]     && lap_row[x] > lap_row[x + dy] &&
+           lap_row[x] > lap_row[x - dy - 1] && lap_row[x] > lap_row[x + dy - 1] &&
+           lap_row[x] > lap_row[x - dy + 1] && lap_row[x] > lap_row[x + dy + 1])
+          )
+        {
+          const int min_eigen_value = hessian_min_eigen_value(smoothed_image, lap_row[x], x, y);
+          //          log_info << x << "x" << y << " -> " << lap_row[x] << "; " << min_eigen_value << endl;
+          if (min_eigen_value > min_ev_threshold) {
+            //if (laplacian_hessian_criteria(laplacian, x, y)) {
+            all_keypoints[number_of_points].u = float(x - (pyramid->border_size >> scale));
+            all_keypoints[number_of_points].v = float(y - (pyramid->border_size >> scale));
+            all_keypoints[number_of_points].scale = float(scale);
+            all_keypoints[number_of_points].score = float(min_eigen_value);
 
-	    number_of_points++;
-	    if (number_of_points >= Maximum_number_of_points) return;
-	  }
-	}
+            number_of_points++;
+            if (number_of_points >= Maximum_number_of_points) return;
+          }
+        }
     }
   }
 }
@@ -222,12 +226,15 @@ int pyr_yape06::copy_keypoints(keypoint * keypoints, int max_number_of_keypoints
 
 IplImage * pyr_yape06::draw_keypoints(fine_gaussian_pyramid * pyramid, keypoint * keypoints, int number_of_keypoints)
 {
+#if pyr_debug
   IplImage * result = mcvGrayToColor(pyramid->original_image);
 
   for(int i = 0; i < number_of_keypoints; i++)
     cvCircle(result, mcvPoint(keypoints[i]), 16 << int(keypoints[i].scale), mcvRainbowColor(int(keypoints[i].scale)));
 
   return result;
+#endif
+  return nullptr;
 }
 
 /////////////////////////////////////////////
@@ -249,9 +256,9 @@ void pyr_yape06::save_eigen_value1(IplImage * smoothed_image, IplImage * laplaci
       const int sqrt_delta = int( sqrt(double((Ixx - Iyy) * (Ixx - Iyy) + 4 * Ixy * Ixy) ) );
 
       if (abs(tr - sqrt_delta) < abs(-(tr + sqrt_delta)))
-	result_row[x] = tr - sqrt_delta;
+        result_row[x] = tr - sqrt_delta;
       else
-	result_row[x] = -(tr + sqrt_delta);
+        result_row[x] = -(tr + sqrt_delta);
     }
   }
 

@@ -38,11 +38,14 @@ class ferns
         int dx_min, int dx_max, int dy_min, int dy_max, int ds_min = 0, int ds_max = 0);
 
   ferns(char * filename);
-  ferns(ifstream & f);
+  ferns(istream & f);
+
+  ~ferns();
+
   bool correctly_read;
 
   bool save(char * filename);
-  bool save(ofstream & f);
+  bool save(ostream & f);
 
   // drop functions:
   // if pyramid->compute_full_resolution_images is set to true => do test on pyramid->full_images The ds in tests ARE CURRENTLY IGNORED.
@@ -54,12 +57,14 @@ class ferns
   int * drop(fine_gaussian_pyramid * pyramid, int x, int y, int level);
 
   // private:
-  void load(ifstream & f);
+  void load(istream & f);
   void alloc(int number_of_ferns, int number_of_tests_per_fern);
   void pick_random_tests(int dx_min, int dx_max, int dy_min, int dy_max, int ds_min, int ds_max);
   void precompute_D_array(int * D, IplImage * image);
 
+#if pyr_debug
   bool drop_full_images(fine_gaussian_pyramid * pyramid, int x, int y, int level, int * leaves_index);
+#endif
   bool drop_aztec_pyramid(fine_gaussian_pyramid * pyramid, int x, int y, int level, int * leaves_index);
 
   int width_full_images, height_full_images;

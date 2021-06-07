@@ -34,7 +34,7 @@ void homography_from_4pt(const float *x, const float *y, const float *z, const f
  * computes the homography sending a,b,c,d to x,y,z,w
  */
 void homography_from_4corresp(
-		const float *a, const float *b, const float *c, const float *d,
-		const float *x, const float *y, const float *z, const float *w, float R[3][3]);
+    const float *a, const float *b, const float *c, const float *d,
+    const float *x, const float *y, const float *z, const float *w, float R[3][3]);
 
 #endif

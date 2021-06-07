@@ -22,42 +22,41 @@
 */
 #include <algorithm>
 #include <fstream>
-using namespace std;
 
+#include "logger.h"
 #include "mcv.h"
 #include "planar_pattern_detector.h"
 #include "buffer_management.h"
 
+using namespace std;
+using namespace plog;
+
 planar_pattern_detector::planar_pattern_detector(void)
 {
-  model_image = 0;
-
-  image_generator = new affine_image_generator06();
-  point_detector = new pyr_yape06();
-
-  model_points = detected_points = 0;
-  match_probabilities = 0;
-
+  model_image = nullptr;
+  pyramid = nullptr;
+  model_points = detected_points = nullptr;
   maximum_number_of_points_to_detect = 500;
 
+  classifier = new fern_based_point_classifier(0, 0, 0, 0, 0, 0, 0, 0, 0);
+  image_generator = new affine_image_generator06();
+  point_detector = new pyr_yape06();
   H_estimator = new homography_estimator;
 }
 
 planar_pattern_detector::~planar_pattern_detector(void)
 {
-  if (model_image != 0) cvReleaseImage(&model_image);
-  if (model_points != 0) delete [] model_points;
-  delete_managed_buffer(detected_points);
+  if (model_image) cvReleaseImage(&model_image);
+  if (pyramid) delete pyramid;
+  if (classifier) delete classifier;
 
-  delete image_generator;
+  if (image_generator) delete image_generator;
+  if (point_detector) delete point_detector;
 
-  //delete point_detector; <= LE DESTRUCTEUR DE PYR_YAPE06 PLANTE !!!
+  if (model_points) delete [] model_points;
+  if (detected_points) delete_managed_buffer(detected_points);
 
-  if (match_probabilities != 0) {
-    for(int i = 0; i < number_of_model_points; i++)
-      delete [] match_probabilities[i];
-    delete [] match_probabilities;
-  }
+  if (H_estimator) delete H_estimator;
 }
 
 bool planar_pattern_detector::load(const char * filename)
@@ -66,13 +65,13 @@ bool planar_pattern_detector::load(const char * filename)
 
   if (!f.is_open()) return false;
 
-  cout << "> [planar_pattern_detector::load] Loading detector file " << filename << " ... " << endl;
+  log_info << "[planar_pattern_detector::load]" << "Loading detector file " << filename << " ... " << endl;
 
   bool result = load(f);
 
   f.close();
 
-  cout << "> [planar_pattern_detector::load] Ok." << endl;
+  log_verb << "[planar_pattern_detector::load]" << "Ok." << endl;
 
   return result;
 }
@@ -82,46 +81,48 @@ bool planar_pattern_detector::save(const char * filename)
   ofstream f(filename, ios::binary);
 
   if (!f.is_open()) {
-    cerr << ">! [planar_pattern_detector::save] Error saving file " << filename << "." << endl;
+    log_error << "[planar_pattern_detector::save]" << "Error saving file " << filename << "." << endl;
     return false;
   }
 
-  cout << "> [planar_pattern_detector::save] Saving detector file " << filename << " ... " << flush;
+  log_info << "[planar_pattern_detector::save]" << "Saving detector file " << filename << " ... " << endl;
 
   bool result = save(f);
 
   f.close();
 
-  cout << "> [planar_pattern_detector::save] Ok." << endl;
+  log_verb << "[planar_pattern_detector::save]" << "Ok." << endl;
 
   return result;
 }
 
-bool planar_pattern_detector::load(ifstream & f)
+bool planar_pattern_detector::load(istream & f)
 {
   f >> image_name;
 
-  cout << "> [planar_pattern_detector::load] Image name: " << image_name << endl;
+  log_debug << "[planar_pattern_detector::load]" << "Image name: " << image_name << endl;
 
   for(int i = 0; i < 4; i++) f >> u_corner[i] >> v_corner[i];
 
   f >> patch_size >> yape_radius >> number_of_octaves;
-  cout << "> [planar_pattern_detector::load] Patch size = " << patch_size
-       << ", Yape radius = " << yape_radius
-       << ", Number of octaves = " << number_of_octaves
-       << "." << endl;
+  log_verb << "[planar_pattern_detector::load]"
+           << "Patch size = " << patch_size
+           << ", Yape radius = " << yape_radius
+           << ", Number of octaves = " << number_of_octaves
+           << "." << endl;
 
   pyramid = new fine_gaussian_pyramid(yape_radius, patch_size, number_of_octaves);
 
   image_generator->load_transformation_range(f);
   
   f >> mean_recognition_rate;
-  cout << "> [planar_pattern_detector::load] Recognition rate: " << mean_recognition_rate << endl;
+  log_verb << "[planar_pattern_detector::load]" << "Recognition rate: " << mean_recognition_rate << endl;
 
   load_managed_image_in_pakfile(f, &model_image);
 
   f >> number_of_model_points;
-  cout << "> [planar_pattern_detector::load] " << number_of_model_points << " model points." << endl;
+  log_verb << "[planar_pattern_detector::load]" << number_of_model_points << " model points." << endl;
+
   model_points = new keypoint[number_of_model_points];
   for(int i = 0; i < number_of_model_points; i++) {
     f >> model_points[i].u >> model_points[i].v >> model_points[i].scale;
@@ -136,7 +137,7 @@ bool planar_pattern_detector::load(ifstream & f)
   return true;
 }
 
-bool planar_pattern_detector::save(ofstream & f)
+bool planar_pattern_detector::save(ostream & f)
 {
   f << image_name << endl;
 
@@ -168,16 +169,22 @@ void planar_pattern_detector::set_maximum_number_of_points_to_detect(int max)
 bool planar_pattern_detector::detect(const IplImage * input_image)
 {
   if (input_image->nChannels != 1 || input_image->depth != IPL_DEPTH_8U) {
-    cerr << ">! [planar_pattern_detector::detect] Wrong image format" << endl;
-    cerr << ">! nChannels = " << input_image->nChannels
-	 << ", depth = " << input_image->depth << "." << endl;
+    log_error << "[planar_pattern_detector::detect]"
+              << "Wrong image format "
+              << "nChannels = " << input_image->nChannels
+              << ", depth = " << input_image->depth << "." << endl;
 
     return false;
   }
 
   pyramid->set_image(input_image);
   detect_points(pyramid);
-  match_points();
+  return detect(pyramid);
+}
+
+bool planar_pattern_detector::detect(fine_gaussian_pyramid * pyramid)
+{
+  match_points(pyramid);
 
   pattern_is_detected = estimate_H();
 
@@ -188,17 +195,17 @@ bool planar_pattern_detector::detect(const IplImage * input_image)
     number_of_matches = 0;
     for(int i = 0; i < number_of_model_points; i++)
       if (model_points[i].class_score > 0) {
-	float Hu, Hv;
-	H.transform_point(model_points[i].fr_u(), model_points[i].fr_v(), Hu, Hv);
-	float dist2 =
-	  (Hu - model_points[i].potential_correspondent->fr_u()) *
-	  (Hu - model_points[i].potential_correspondent->fr_u()) +
-	  (Hv - model_points[i].potential_correspondent->fr_v()) *
-	  (Hv - model_points[i].potential_correspondent->fr_v());
-	if (dist2 > 10.0 * 10.0)
-	  model_points[i].class_score = 0.0;
-	else
-	  number_of_matches++;
+        float Hu, Hv;
+        H.transform_point(model_points[i].fr_u(), model_points[i].fr_v(), Hu, Hv);
+        float dist2 =
+          (Hu - model_points[i].potential_correspondent->fr_u()) *
+          (Hu - model_points[i].potential_correspondent->fr_u()) +
+          (Hv - model_points[i].potential_correspondent->fr_v()) *
+          (Hv - model_points[i].potential_correspondent->fr_v());
+        if (dist2 > 10.0 * 10.0)
+          model_points[i].class_score = 0.0;
+        else
+          number_of_matches++;
       }
   }
 
@@ -211,8 +218,8 @@ void planar_pattern_detector::save_image_of_model_points(const char * filename, 
 
   for(int i = 0; i < number_of_model_points; i++)
     mcvCircle(color_model_image,
-	      int( model_points[i].fr_u() + 0.5 ), int( model_points[i].fr_v() + 0.5 ), patch_size / 2 * (1 << int(model_points[i].scale)),
-	      cvScalar(0, 255, 0), 2);
+              int( model_points[i].fr_u() + 0.5 ), int( model_points[i].fr_v() + 0.5 ), patch_size / 2 * (1 << int(model_points[i].scale)),
+              cvScalar(0, 255, 0), 2);
 
   mcvSaveImage(filename, color_model_image);
   cvReleaseImage(&color_model_image);
@@ -220,13 +227,13 @@ void planar_pattern_detector::save_image_of_model_points(const char * filename, 
 
 void planar_pattern_detector::detect_points(fine_gaussian_pyramid * pyramid)
 {
-  manage_buffer(detected_points, maximum_number_of_points_to_detect, keypoint);
+  manage_buffer(detected_points, maximum_number_of_points_to_detect);
   //   point_detector->set_laplacian_threshold(10);
   //   point_detector->set_min_eigenvalue_threshold(10);
   number_of_detected_points = point_detector->detect(pyramid, detected_points, maximum_number_of_points_to_detect);
 }
 
-void planar_pattern_detector::match_points(void)
+void planar_pattern_detector::match_points(fine_gaussian_pyramid * pyramid)
 {
   for(int i = 0; i < number_of_model_points; i++) {
     model_points[i].potential_correspondent = 0;
@@ -242,8 +249,8 @@ void planar_pattern_detector::match_points(void)
       float true_score = exp(k->class_score);
 
       if (model_points[k->class_index].class_score < true_score) {
-	model_points[k->class_index].potential_correspondent = k;
-	model_points[k->class_index].class_score = true_score;
+        model_points[k->class_index].potential_correspondent = k;
+        model_points[k->class_index].class_score = true_score;
       }
     }
   }
@@ -256,25 +263,25 @@ bool planar_pattern_detector::estimate_H(void)
   for(int i = 0; i < number_of_model_points; i++)
     if (model_points[i].class_score > 0)
       H_estimator->add_correspondence(model_points[i].fr_u(), model_points[i].fr_v(),
-				      model_points[i].potential_correspondent->fr_u(), model_points[i].potential_correspondent->fr_v(),
+                                      model_points[i].potential_correspondent->fr_u(), model_points[i].potential_correspondent->fr_v(),
                                       model_points[i].class_score);
 
-  return H_estimator->ransac(&H, 10., 1500, 0.99, true) > 10;
+  return H_estimator->ransac(&H, 10.0, 1500, 0.99, true) > 10;
 }
 
 //! test()
-void planar_pattern_detector::test(int number_of_samples_for_test, bool verbose)
+void planar_pattern_detector::test(int number_of_samples_for_test)
 {
   float rate = classifier->test(model_points, number_of_model_points,
-				number_of_octaves, yape_radius, number_of_samples_for_test,
-				image_generator,
-				verbose);
+                                number_of_octaves, yape_radius, number_of_samples_for_test,
+                                image_generator);
 
-  cout << " [planar_pattern_detector::test] Rate: " << rate << endl;
+  log_info << "[planar_pattern_detector::test]" << "Rate: " << rate << endl;
 }
 
 // For debug purposes:
 
+#if pyr_debug
 IplImage * planar_pattern_detector::create_image_of_matches(void)
 {
   int width = MAX(model_image->width, pyramid->original_image->width);
@@ -288,7 +295,10 @@ IplImage * planar_pattern_detector::create_image_of_matches(void)
 
   for(int i = 0; i < number_of_model_points; i++)
     mcvCross(result, model_points[i].fr_u(), model_points[i].fr_v(), 5, cvScalar(255, 0, 0), 1);
-  cout << number_of_detected_points << " detected points." << endl;
+
+  log_info << "[planar_pattern_detector::create_image_of_matches]"
+           << number_of_detected_points << " detected points." << endl;
+
   for(int i = 0; i < number_of_detected_points; i++)
     mcvCross(result, detected_points[i].fr_u(), h + detected_points[i].fr_v(), 5, cvScalar(255, 0, 0), 1);
 
@@ -296,42 +306,43 @@ IplImage * planar_pattern_detector::create_image_of_matches(void)
   
   CvScalar color = cvScalar(0,255,0);
   cvLine(result,
-	 cvPoint(detected_u_corner[0], h + detected_v_corner[0]),
-	 cvPoint(detected_u_corner[1], h + detected_v_corner[1]),
-	 color, 3);
+         cvPoint(detected_u_corner[0], h + detected_v_corner[0]),
+         cvPoint(detected_u_corner[1], h + detected_v_corner[1]),
+         color, 3);
 
   cvLine(result,
-	 cvPoint(detected_u_corner[1], h + detected_v_corner[1]),
-	 cvPoint(detected_u_corner[2], h + detected_v_corner[2]),
-	 color, 3);
+         cvPoint(detected_u_corner[1], h + detected_v_corner[1]),
+         cvPoint(detected_u_corner[2], h + detected_v_corner[2]),
+         color, 3);
 
   cvLine(result,
-	 cvPoint(detected_u_corner[2], h + detected_v_corner[2]),
-	 cvPoint(detected_u_corner[3], h + detected_v_corner[3]),
-	 color, 3);
+         cvPoint(detected_u_corner[2], h + detected_v_corner[2]),
+         cvPoint(detected_u_corner[3], h + detected_v_corner[3]),
+         color, 3);
 
   cvLine(result,
-	 cvPoint(detected_u_corner[3], h + detected_v_corner[3]),
-	 cvPoint(detected_u_corner[0], h + detected_v_corner[0]),
-	 color, 3);
+         cvPoint(detected_u_corner[3], h + detected_v_corner[3]),
+         cvPoint(detected_u_corner[0], h + detected_v_corner[0]),
+         color, 3);
 
   number_of_matches = 0;
   for(int i = 0; i < number_of_model_points; i++)
     if (model_points[i].class_score > 0) {
       number_of_matches++;
       cvLine(result,
-	     cvPoint(model_points[i].fr_u(), model_points[i].fr_v()),
-	     cvPoint(model_points[i].potential_correspondent->fr_u(),
-		     h + model_points[i].potential_correspondent->fr_v()),
-	     color, 1);
+             cvPoint(model_points[i].fr_u(), model_points[i].fr_v()),
+             cvPoint(model_points[i].potential_correspondent->fr_u(),
+                     h + model_points[i].potential_correspondent->fr_v()),
+             color, 1);
       cvCircle(result,
-	       cvPoint(model_points[i].potential_correspondent->fr_u(),
-		       h + model_points[i].potential_correspondent->fr_v()),
-	       16 * (1 << int(model_points[i].potential_correspondent->scale)),
-	       color, 1);
+               cvPoint(model_points[i].potential_correspondent->fr_u(),
+                       h + model_points[i].potential_correspondent->fr_v()),
+               16 * (1 << int(model_points[i].potential_correspondent->scale)),
+               color, 1);
     }
 
-  cout << "Number of matches: " << number_of_matches << endl;
+  log_info << "[planar_pattern_detector::create_image_of_matches]"
+           << "Number of matches: " << number_of_matches << endl;
   return result;
 }
-
+#endif

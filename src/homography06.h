@@ -26,7 +26,7 @@
 #include <iostream>
 using namespace std;
 
-#include <cv.h>
+#include "cv.h"
 
 class homography06 : public CvMat
 {
@@ -41,13 +41,13 @@ class homography06 : public CvMat
 
   ~homography06();
 
-  void transform_point(const int u, const int v, int & up, int & vp);
-  void transform_point(const float u, const float v, float & up, float & vp);
-  void transform_point(const double u, const double v, double & up, double & vp);
+  void transform_point(const int u, const int v, int & up, int & vp) const;
+  void transform_point(const float u, const float v, float & up, float & vp) const;
+  void transform_point(const double u, const double v, double & up, double & vp) const;
 
   friend ostream& operator<< (ostream& o, const homography06& H);
 
-  float cvmGet(const int i, const int j);
+  float cvmGet(const int i, const int j) const;
   void  cvmSet(const int i, const int j, const float val);
   void  cvmSet(const int i, const int j, const double val);
 
@@ -57,7 +57,7 @@ class homography06 : public CvMat
 
 ostream& operator<< (ostream& o, const homography06& H);
 
-inline float homography06::cvmGet(const int i, const int j)
+inline float homography06::cvmGet(const int i, const int j) const
 {
   return data.fl[3 * i + j];
 }

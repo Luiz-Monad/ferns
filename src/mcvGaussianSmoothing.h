@@ -59,9 +59,7 @@ void mcvGaussianSmoothing_7x7(IplImage * src, IplImage * dst, IplImage * int_buf
 //
 // Values obtained with the following code:
 //   double sigma0 = 1.0; */
-
 //   double k = pow(2., 1. / 4.); */
-//   cout << "k = " << k << endl; */
 
 //   double dsigma0 = sqrt(k*k - 1) * sigma0;
 //   gaussianKernelWeightComputation(dsigma0, 3, 16);

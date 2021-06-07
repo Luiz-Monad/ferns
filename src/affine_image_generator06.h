@@ -23,7 +23,7 @@
 #ifndef affine_image_generator06_h
 #define affine_image_generator06_h
 
-#include <cv.h>
+#include "cv.h"
 
 #include <fstream>
 using namespace std;
@@ -37,8 +37,8 @@ class affine_image_generator06
   affine_image_generator06(void);
   ~affine_image_generator06(void);
 
-  void load_transformation_range(ifstream & f);
-  void save_transformation_range(ofstream & f);
+  void load_transformation_range(istream & f);
+  void save_transformation_range(ostream & f);
   void set_transformation_range(affine_transformation_range * range);
 
   void set_original_image(IplImage * original_image,
@@ -78,10 +78,10 @@ class affine_image_generator06
   void generate_affine_image(void);
 
   void generate_affine_transformation(float a[6],
-				      float initialTx, float initialTy,
-				      float theta, float phi,
-				      float lambda1, float lambda2,
-				      float finalTx, float finalTy);
+                                      float initialTx, float initialTy,
+                                      float theta, float phi,
+                                      float lambda1, float lambda2,
+                                      float finalTx, float finalTy);
 
   void generate_random_affine_transformation(void);
   void generate_Id_affine_transformation(void);
@@ -99,7 +99,7 @@ class affine_image_generator06
 
   affine_transformation_range transformation_range;
 
-  IplImage * original_image,  * original_image_with_128_as_background, * generated_image;
+  IplImage * original_image, * original_image_with_128_as_background, * generated_image;
   float a[6];
 
   // for debugging:

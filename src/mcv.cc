@@ -21,14 +21,17 @@
   Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
-#include <cv.h>
-#include <highgui.h>
-
+#include "logger.h"
+#include "cv.h"
+#include "highgui.h"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 #include "mcv.h"
 
 using namespace std;
+using namespace plog;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +46,7 @@ void mcvSmooth(IplImage * image, IplImage * smoothed_image, int smooth_type, int
 {
   if (smooth_type != CV_GAUSSIAN)
   {
-    cerr << "mcvSmooth: only for CV_GAUSSIAN" << endl;
+    log_error << "[::mcvSmooth]" << "use only for CV_GAUSSIAN" << endl;
     return;
   }
 
@@ -80,7 +83,7 @@ float mcvGaussianDerivative(IplImage * image, int x, int y, int order_x, int ord
   for(int i = -half_size; i <= +half_size; i++)
     for(int j = -half_size; j <= +half_size; j++)
     {
-      float c = 0.;
+      float c = 0.f;
       float e = exp(-(i*i+j*j) / (2 * sigma * sigma));
 
       if (order_x == 2 && order_y == 0)
@@ -92,7 +95,7 @@ float mcvGaussianDerivative(IplImage * image, int x, int y, int order_x, int ord
       else
       {
         c = -1;
-        cerr << "error when calling mcvGaussianDerivative" << endl;
+        log_error << "[::mcvGaussianDerivative]" << "when calling mcvGaussianDerivative" << endl;
       }
 
       int nx = x + i, ny = y + j;
@@ -107,7 +110,7 @@ float mcvGaussianDerivative(IplImage * image, int x, int y, int order_x, int ord
         else if (image->depth == int(IPL_DEPTH_32F))
           result += c * mcvGet2D(image, nx, ny, float);
         else
-          cerr << "mcvGaussianDerivative: wrong image format." << endl;
+          log_error << "[::mcvGaussianDerivative]" << "wrong image format." << endl;
       }
     }
 
@@ -159,14 +162,14 @@ void mcvSetBorder(IplImage * image, int border, int value)
           mcvGet2D(image, x, y, float) = float(value);
   }
   else
-    cerr << "mcvSetBorder: wrong image format." << endl;
+    log_error << "[::mcvSetBorder]" << "wrong image format." << endl;
 }
 
 void mcvSetBorder(IplImage * image, int border_size)
 {
   if (image->depth != IPL_DEPTH_32F)
   {
-    cerr << "Error when calling mcvAddBorder: image should be 32F" << endl;
+    log_error << "[::mcvAddBorder]" << "image should be 32F" << endl;
     return;
   }
 
@@ -430,15 +433,14 @@ void mcvScaleTo0_255(IplImage * original, IplImage * scaled)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-int mcvSaveImage(const char * filename, IplImage * image, bool verbose)
+int mcvSaveImage(const char * filename, IplImage * image)
 {
-  if (verbose)
-    cout << "(saving " << filename << "..." << flush;
+  log_info << "[::mcvSaveImage]" << "saving " << filename << "..." << endl;
 
   int result;
 
   if (image->depth == IPL_DEPTH_8U)
-    result = cvSaveImage(filename, image);
+    result = cv::imwrite(filename, cv::cvarrToMat(image));
   else
   {
     IplImage * tempImage;
@@ -447,33 +449,31 @@ int mcvSaveImage(const char * filename, IplImage * image, bool verbose)
     CvPoint Pmin, Pmax;
     cvMinMaxLoc(image, &min, &max, &Pmin, &Pmax);
 
-    if (verbose)
-      cout << "[" << min << " : " << max << "] " << flush;
+    log_verb << "[::mcvSaveImage]" << "size (" << min << " : " << max << ")" << endl;
 
     tempImage = cvCreateImage(cvSize(image->width, image->height), IPL_DEPTH_8U, 1);
     cvConvertScale(image, tempImage, 255. / (max - min), -min * 255 / (max - min));
 
-    result = cvSaveImage(filename, tempImage);
+    result = cv::imwrite(filename, cv::cvarrToMat(tempImage));
 
     cvReleaseImage(&tempImage);
   }
 
-  if (verbose && !result)
-    cout << "ERROR !" << endl;
-
-  if (verbose && result)
-    cout << "ok)" << endl;
+  if (!result)
+    log_error << "[::mcvSaveImage]" << "error" << endl;
+  else
+    log_verb << "[::mcvSaveImage]" <<  "ok" << endl;
 
   return result;
 }
 
-int mcvSaveImage(const char * generic_filename, int index, IplImage * image, bool verbose)
+int mcvSaveImage(const char * generic_filename, int index, IplImage * image)
 {
   char filename[1000];
 
   sprintf(filename, generic_filename, index);
 
-  return mcvSaveImage(filename, image, verbose);
+  return mcvSaveImage(filename, image);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -483,29 +483,28 @@ IplImage * mcvCreateSimilarImage(IplImage * image)
   return cvCreateImage(cvSize(image->width, image->height), image->depth, image->nChannels);
 }
 
-IplImage * mcvLoadImage(const char * filename, int code, bool verbose)
+IplImage * mcvLoadImage(const char * filename)
 {
-  if (verbose)
-    cout << "(loading " << filename << "..." << flush;
+  log_info << "[::mcvLoadImage]" << "loading " << filename << "..." << endl;
 
-  IplImage * result = cvLoadImage(filename, code);
+  IplImage* result = new IplImage;
+  *result = cvIplImage(cv::imread(filename, cv::IMREAD_GRAYSCALE));
 
-  if (verbose && !result)
-    cout << "ERROR !" << endl;
-
-  if (verbose && result)
-    cout << "ok)" << endl;
+  if (!result)
+    log_error << "[::mcvLoadImage]" << "error" << endl;
+  else
+    log_verb << "[::mcvLoadImage]" <<  "ok" << endl;
 
   return result;
 }
 
-IplImage * mcvLoadImage(const char * generic_filename, int index, int code, bool verbose)
+IplImage * mcvLoadImage(const char * generic_filename, int index)
 {
   char filename[1000];
 
   sprintf(filename, generic_filename, index);
 
-  return mcvLoadImage(filename, code, verbose);
+  return mcvLoadImage(filename);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -584,8 +583,8 @@ void mcvReplaceByNoise(IplImage * image, int value)
       unsigned char * line = mcvRow(image, l, unsigned char);
 
       for(int c = 0; c < image->width; c++)
-	if (int(line[c]) == value)
-	  line[c] = (unsigned char)(rand() % 256);
+        if (int(line[c]) == value)
+          line[c] = (unsigned char)(rand() % 256);
     }
 }
 
@@ -598,21 +597,21 @@ void mcvAddWhiteNoise(const IplImage * image, const int minNoise, const int maxN
       unsigned char * line = mcvRow(image, y, unsigned char);
 
       for(int x = 0; x < image->width; x++)
-	{
-	  int p = line[x];
-	  int noise = rand() % (2 * deltaNoise + 1) - deltaNoise;
+        {
+          int p = line[x];
+          int noise = rand() % (2 * deltaNoise + 1) - deltaNoise;
 
-	  if (noise < 0)
-	    noise -= minNoise;
-	  else
-	    noise += minNoise;
+          if (noise < 0)
+            noise -= minNoise;
+          else
+            noise += minNoise;
 
-	  p += noise;
-	  if (p > 255) p = 255;
-	  if (p < 0)   p = 0;
+          p += noise;
+          if (p > 255) p = 255;
+          if (p < 0)   p = 0;
 
-	  line[x] = (unsigned char)p;
-	}
+          line[x] = (unsigned char)p;
+        }
     }
 }
 
@@ -623,18 +622,18 @@ void mcvAddWhiteNoise(const IplImage * image, const int maxNoise)
       unsigned char * line = (unsigned char *)(image->imageData + y * image->widthStep);
 
       for(int x = 0; x < image->width; x++)
-	{
-	  int p = line[x];
+        {
+          int p = line[x];
 
-	  p += rand() % (2 * maxNoise + 1) - maxNoise;
+          p += rand() % (2 * maxNoise + 1) - maxNoise;
 
-	  if (p > 255)
-	    p = 255;
-	  else if (p < 0)
-	    p = 0;
+          if (p > 255)
+            p = 255;
+          else if (p < 0)
+            p = 0;
 
-	  line[x] = (unsigned char)p;
-	}
+          line[x] = (unsigned char)p;
+        }
     }
 }
 
@@ -743,7 +742,7 @@ IplImage * mcvZoom(IplImage * source, int xc, int yc, float zoom)
 
 void mcvPut(IplImage * destImage, IplImage * imageToCopy, int x, int y)
 {
-	/*
+        /*
   IplROI roi;
   roi.xOffset = x;
   roi.yOffset = y;
@@ -766,21 +765,21 @@ void mcvPut(IplImage * destImage, IplImage * imageToCopy, int x, int y)
 
   destImage->roi = tempRoi;
   */
-	// Julien's version, handles clipping
-	CvMat dst, src;
-	int w = MIN(imageToCopy->width, destImage->width-x);
-	int h = MIN(imageToCopy->height, destImage->height-y);
+    // Julien's version, handles clipping
+    CvMat dst, src;
+    int w = MIN(imageToCopy->width, destImage->width-x);
+    int h = MIN(imageToCopy->height, destImage->height-y);
 
-	cvGetSubRect(destImage, &dst, cvRect(x,y,w,h));
-	cvGetSubRect(imageToCopy, &src, cvRect(0,0,w,h));
+    cvGetSubRect(destImage, &dst, cvRect(x,y,w,h));
+    cvGetSubRect(imageToCopy, &src, cvRect(0,0,w,h));
 
-	if (imageToCopy->nChannels == destImage->nChannels) {
-		cvCvtScale(&src, &dst);
-	} else if (imageToCopy->nChannels==3) {
-		cvCvtColor(&src, &dst, CV_BGR2GRAY);
-	} else {
-		cvCvtColor(&src, &dst, CV_GRAY2BGR);
-	}
+    if (imageToCopy->nChannels == destImage->nChannels) {
+        cvCvtScale(&src, &dst);
+    } else if (imageToCopy->nChannels==3) {
+        cvCvtColor(&src, &dst, CV_BGR2GRAY);
+    } else {
+        cvCvtColor(&src, &dst, CV_GRAY2BGR);
+    }
 }
 
 void mcvDeinterlace(IplImage * image)
@@ -921,15 +920,15 @@ CvScalar mcvRainbowColor(int index, float coeff)
 
   switch(index)
   {
-  case 0: return CV_RGB(255 * coeff, 0, 0);
-  case 1: return CV_RGB(0, 255 * coeff, 0);
-  case 2: return CV_RGB(0, 0, 255 * coeff);
+  case 0: return cvScalar(CV_RGB(255 * coeff, 0, 0));
+  case 1: return cvScalar(CV_RGB(0, 255 * coeff, 0));
+  case 2: return cvScalar(CV_RGB(0, 0, 255 * coeff));
 
-  case 3: return CV_RGB(255 * coeff, 255 * coeff, 0);
-  case 4: return CV_RGB(0, 255 * coeff, 255 * coeff);
-  case 5: return CV_RGB(255 * coeff, 0, 255 * coeff);
+  case 3: return cvScalar(CV_RGB(255 * coeff, 255 * coeff, 0));
+  case 4: return cvScalar(CV_RGB(0, 255 * coeff, 255 * coeff));
+  case 5: return cvScalar(CV_RGB(255 * coeff, 0, 255 * coeff));
 
-  default: return CV_RGB(128, 128, 128);
+  default: return cvScalar(CV_RGB(128, 128, 128));
   }
 }
 

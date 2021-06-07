@@ -21,10 +21,13 @@
   Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 #include <iostream>
-using namespace std;
 
+#include "logger.h"
 #include "buffer_management.h"
 #include "mcvGaussianSmoothing.h"
+
+using namespace std;
+using namespace plog;
 
 
 //   Weight Computation:
@@ -57,7 +60,7 @@ void gaussianKernelWeightComputation(double sigma, int kernel_size, int shift)
 {
   const int N = 100;
 
-  cout << "Sigma = " << sigma << ". Using a shift of " << shift << " bits." << endl;
+  log_debug << "[::gaussianKernelWeightComputation]" << "Sigma = " << sigma << ". Using a shift of " << shift << " bits." << endl;
   // True weights:
   double sum = 0;
   for(int i = -kernel_size/2; i <= +kernel_size/2; i++) {
@@ -86,13 +89,17 @@ void gaussianKernelWeightComputation(double sigma, int kernel_size, int shift)
       weight += G * f * dx;
     }
     weight /= sum;
-    cout << " " << i << " -> " << weight << " -> " << int(weight * (1 << (shift / 2)) + 0.5) << endl;
+
+    log_debug << "[::gaussianKernelWeightComputation]"
+              << " " << i << " -> " << weight << " -> " << int(weight * (1 << (shift / 2)) + 0.5) << endl;
+
     sum_w += int(weight * (1 << (shift / 2)) + 0.5);
   }
 
   if (sum_w != (1 << shift / 2))
-    cout << "These weights are not correct: you still have to ensure that sum(weights) = 1 << "
-	 << shift/2 << " = " << (1 << shift/2) << endl;
+    log_warn << "[::gaussianKernelWeightComputation]"
+             << "These weights are not correct: you still have to ensure that sum(weights) = 1 << "
+             << shift/2 << " = " << (1 << shift/2) << endl;
 }
 
 inline void mcvGaussianSmoothing_3x3(IplImage * im_src, IplImage * im_dst, const int w, const int h, IplImage * im_int_buffer, const int W0, const int W1, const int shift)
@@ -178,9 +185,9 @@ inline void mcvGaussianSmoothing_5x5(IplImage * im_src, IplImage * im_dst, const
 }
 
 inline void mcvGaussianSmoothing_7x7_standard_weights(IplImage * im_src, IplImage * im_dst,
-						      const int w, const int h,
-						      IplImage * im_int_buffer,
-						      const int width_int_buffer)
+                                                      const int w, const int h,
+                                                      IplImage * im_int_buffer,
+                                                      const int width_int_buffer)
 {
   // First pass: make use of intermediate_int_image
 
@@ -190,8 +197,8 @@ inline void mcvGaussianSmoothing_7x7_standard_weights(IplImage * im_src, IplImag
 
     for(int x = 3; x < w - 3; x++)
       ints[x] =
-	2 * (9 * int(src[x]) +	7 * (int(src[x - 1]) + int(src[x + 1])) + int(src[x - 3]) + int(src[x + 3])) +
-	7 * (int(src[x - 2]) + int(src[x + 2]));
+        2 * (9 * int(src[x]) + 7 * (int(src[x - 1]) + int(src[x + 1])) + int(src[x - 3]) + int(src[x + 3])) +
+        7 * (int(src[x - 2]) + int(src[x + 2]));
 
     ints[0] = ints[1] = ints[2] = ints[3];
     ints[w - 1] = ints[w - 2] = ints[w - 3] = ints[w - 4];
@@ -205,10 +212,12 @@ inline void mcvGaussianSmoothing_7x7_standard_weights(IplImage * im_src, IplImag
     unsigned char * dest = mcvRow(im_dst, y, unsigned char);
 
     for(int x = 0; x < w; x++)
-      dest[x] = (unsigned char)((2 * (9 * (row0 + 3 * D)[x] +
-				      7 * ((row0 + 2 * D)[x] + (row0 + 4 * D)[x]) +
-				      row0[x] + (row0 + 6 * D)[x]) +
-				 7 * ((row0 +     D)[x] + (row0 + 5 * D)[x]) + delta) >> 12);
+      dest[x] = (unsigned char)((2 * (9 *  (row0 + 3 * D)[x] +
+                                      7 * ((row0 + 2 * D)[x] +
+                                           (row0 + 4 * D)[x]) +
+                                 row0[x] + (row0 + 6 * D)[x]) +
+                                      7 * ((row0 +     D)[x] +
+                                           (row0 + 5 * D)[x]) + delta) >> 12);
   }
 
   // Second pass: borders...
@@ -228,9 +237,9 @@ inline void mcvGaussianSmoothing_7x7_standard_weights(IplImage * im_src, IplImag
 }
 
 inline void mcvGaussianSmoothing_7x7(IplImage * im_src, IplImage * im_dst,
-				     const int w, const int h,
-				     IplImage * im_int_buffer,
-				     const int W0, const int W1, const int W2, const int W3, const int shift)
+                                     const int w, const int h,
+                                     IplImage * im_int_buffer,
+                                     const int W0, const int W1, const int W2, const int W3, const int shift)
 {
   // First pass: make use of intermediate_int_image
 
@@ -240,10 +249,10 @@ inline void mcvGaussianSmoothing_7x7(IplImage * im_src, IplImage * im_dst,
 
     for(int x = 3; x < w - 3; x++)
       ints[x] =
-	W0 * int(src[x]) +
-	W1 * (int(src[x - 1]) + int(src[x + 1])) +
-	W2 * (int(src[x - 2]) + int(src[x + 2])) +
-	W3 * (int(src[x - 3]) + int(src[x + 3]));
+        W0 * int(src[x]) +
+        W1 * (int(src[x - 1]) + int(src[x + 1])) +
+        W2 * (int(src[x - 2]) + int(src[x + 2])) +
+        W3 * (int(src[x - 3]) + int(src[x + 3]));
 
     ints[0] = ints[1] = ints[2] = ints[3];
     ints[w - 1] = ints[w - 2] = ints[w - 3] = ints[w - 4];
@@ -258,9 +267,9 @@ inline void mcvGaussianSmoothing_7x7(IplImage * im_src, IplImage * im_dst,
 
     for(int x = 0; x < w; x++)
       dest[x] = (unsigned char)(( W0 *  (row0 + 3 * D)[x] +
-				  W1 * ((row0 + 2 * D)[x] + (row0 + 4 * D)[x]) +
-				  W2 * ((row0 +     D)[x] + (row0 + 5 * D)[x]) +
-				  W3 * ( row0         [x] + (row0 + 6 * D)[x]) + delta) >> shift);
+                                  W1 * ((row0 + 2 * D)[x] + (row0 + 4 * D)[x]) +
+                                  W2 * ((row0 +     D)[x] + (row0 + 5 * D)[x]) +
+                                  W3 * ( row0         [x] + (row0 + 6 * D)[x]) + delta) >> shift);
   }
 
   // Second pass: borders...
@@ -340,7 +349,7 @@ void mcvGaussianSmoothing_dsigma_1_sigma_0_Scales_4(IplImage * src, IplImage * d
 
   if (w == 640 && h == 480)      mcvGaussianSmoothing_3x3(src, dst, 640, 480, int_buffer, 126, 65, 16);
   else if (w == 320 && h == 240) mcvGaussianSmoothing_3x3(src, dst, 320, 240, int_buffer, 126, 65, 16);
-  else                          mcvGaussianSmoothing_3x3(src, dst,   w,   h, int_buffer, 126, 65, 16);
+  else                           mcvGaussianSmoothing_3x3(src, dst,   w,   h, int_buffer, 126, 65, 16);
 }
 
 void mcvGaussianSmoothing_dsigma_2_sigma_0_Scales_4(IplImage * src, IplImage * dst, IplImage * int_buffer)
@@ -350,7 +359,7 @@ void mcvGaussianSmoothing_dsigma_2_sigma_0_Scales_4(IplImage * src, IplImage * d
 
   if (w == 640 && h == 480)      mcvGaussianSmoothing_3x3(src, dst, 640, 480, int_buffer, 116, 70, 16);
   else if (w == 320 && h == 240) mcvGaussianSmoothing_3x3(src, dst, 320, 240, int_buffer, 116, 70, 16);
-  else                          mcvGaussianSmoothing_3x3(src, dst,   w,   h, int_buffer, 116, 70, 16);
+  else                           mcvGaussianSmoothing_3x3(src, dst,   w,   h, int_buffer, 116, 70, 16);
 }
 
 void mcvGaussianSmoothing_dsigma_2_sigma_0_Scales_4_5x5(IplImage * src, IplImage * dst, IplImage * int_buffer)
@@ -360,6 +369,6 @@ void mcvGaussianSmoothing_dsigma_2_sigma_0_Scales_4_5x5(IplImage * src, IplImage
 
   if (w == 640 && h == 480)      mcvGaussianSmoothing_5x5(src, dst, 640, 480, int_buffer, 102, 63, 14, 16);
   else if (w == 320 && h == 240) mcvGaussianSmoothing_5x5(src, dst, 320, 240, int_buffer, 102, 63, 14, 16);
-  else                          mcvGaussianSmoothing_5x5(src, dst,   w,   h, int_buffer, 102, 63, 14, 16);
+  else                           mcvGaussianSmoothing_5x5(src, dst,   w,   h, int_buffer, 102, 63, 14, 16);
 }
 

@@ -23,7 +23,7 @@
 #ifndef MCV_H
 #define MCV_H
 
-#include <cv.h>
+#include "cv.h"
 
 /*! \file */
 
@@ -68,11 +68,11 @@ void mcvReplace(IplImage * image, int old_value, int new_value);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-int mcvSaveImage(const char * filename, IplImage * image, bool verbose = true);
-int mcvSaveImage(const char * generic_filename, int index, IplImage * image, bool verbose = true);
+int mcvSaveImage(const char * filename, IplImage * image);
+int mcvSaveImage(const char * generic_filename, int index, IplImage * image);
 
-IplImage * mcvLoadImage(const char * filename, int code, bool verbose = true);
-IplImage * mcvLoadImage(const char * generic_filename, int index, int code, bool verbose = true);
+IplImage * mcvLoadImage(const char * filename);
+IplImage * mcvLoadImage(const char * generic_filename, int index);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

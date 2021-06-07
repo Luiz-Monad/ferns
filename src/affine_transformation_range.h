@@ -32,9 +32,9 @@ class affine_transformation_range
   affine_transformation_range(void);
   ~affine_transformation_range(void);
 
-  void load(ifstream & f);
-  void load_in_degrees(ifstream & f);
-  void save(ofstream & f);
+  void load(istream & f);
+  void load_in_degrees(istream & f);
+  void save(ostream & f);
 
   //! Global rotation. Default = [0 : 2Pi]
   void set_range_variation_for_theta(float min_theta, float max_theta);
@@ -44,8 +44,8 @@ class affine_transformation_range
   void independent_scaling(float min_lambda1, float max_lambda1, float min_lambda2, float max_lambda2);
   //! Constrained scaling. Adds a constraint on the range of the product of l1 and l2.
   void constrained_scaling(float min_lambda1, float max_lambda1,
-			   float min_lambda2, float max_lambda2,
-			   float min_l1_l2, float max_l1_l2);
+                           float min_lambda2, float max_lambda2,
+                           float min_l1_l2, float max_l1_l2);
 
   void generate_random_parameters(float & theta, float & phi, float & lambda1, float & lambda2);
 

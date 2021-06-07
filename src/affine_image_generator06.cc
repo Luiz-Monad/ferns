@@ -34,9 +34,9 @@ static const int prime = 307189;
 
 affine_image_generator06::affine_image_generator06(void)
 {
-  original_image = 0;
-  generated_image = 0;
-  original_image_with_128_as_background = 0;
+  original_image = nullptr;
+  generated_image = nullptr;
+  original_image_with_128_as_background = nullptr;
 
   white_noise = new char[prime];
   limited_white_noise = new int[prime];
@@ -48,20 +48,20 @@ affine_image_generator06::affine_image_generator06(void)
 
 affine_image_generator06::~affine_image_generator06(void)
 {
-  if (original_image != 0)  cvReleaseImage(&original_image);
-  if (generated_image != 0) cvReleaseImage(&generated_image);
+  if (original_image)  cvReleaseImage(&original_image);
+  if (generated_image) cvReleaseImage(&generated_image);
   if (original_image_with_128_as_background) cvReleaseImage(&original_image_with_128_as_background);
 
   delete [] white_noise;
   delete [] limited_white_noise;
 }
 
-void affine_image_generator06::load_transformation_range(ifstream & f)
+void affine_image_generator06::load_transformation_range(istream & f)
 {
   transformation_range.load(f);
 }
 
-void affine_image_generator06::save_transformation_range(ofstream & f)
+void affine_image_generator06::save_transformation_range(ostream & f)
 {
   transformation_range.save(f);
 }
@@ -113,10 +113,10 @@ void affine_image_generator06::set_original_image(IplImage * p_original_image,
                                                   int generated_image_width,
                                                   int generated_image_height)
 {
-  if (original_image != 0) cvReleaseImage(&original_image);
+  if (original_image) cvReleaseImage(&original_image);
   original_image = cvCloneImage(p_original_image);
 
-  if (generated_image != 0) cvReleaseImage(&generated_image);
+  if (generated_image) cvReleaseImage(&generated_image);
   if (generated_image_width < 0)
     generated_image = cvCloneImage(p_original_image);
   else
@@ -133,7 +133,7 @@ void affine_image_generator06::set_mask(int x_min, int y_min, int x_max, int y_m
     unsigned char * row = mcvRow(original_image_with_128_as_background, v, unsigned char);
     for(int u = 0; u < original_image_with_128_as_background->width; u++)
       if (u < x_min || u > x_max || v < y_min || v > y_max)
-	row[u] = 128;
+        row[u] = 128;
   }
 }
 
@@ -191,7 +191,7 @@ void affine_image_generator06::generate_random_affine_transformation(void)
 
 void affine_image_generator06::generate_Id_affine_transformation(void)
 {
-  generate_affine_transformation(a, 0, 0 , 0, 0, 1, 1, 0, 0);
+  generate_affine_transformation(a, 0, 0, 0, 0, 1, 1, 0, 0);
 }
 
 void affine_image_generator06::affine_transformation(float p_a[6],
@@ -203,8 +203,8 @@ void affine_image_generator06::affine_transformation(float p_a[6],
 }
 
 void affine_image_generator06::inverse_affine_transformation(float p_a[6],
-							     float u, float v,
-							     float & nu, float & nv)
+                                                             float u, float v,
+                                                             float & nu, float & nv)
 {
   float det = p_a[0] * p_a[4] - p_a[3] * p_a[1];
 
@@ -234,9 +234,9 @@ void affine_image_generator06::add_white_noise(IplImage * image, int gray_level_
       int p = int(*line);
 
       if (p != gray_level_to_avoid) {
-	p += *noise;
+        p += *noise;
 
-	*line = (p > 255) ? 255 : (p < 0) ? 0 : (unsigned char)p;
+        *line = (p > 255) ? 255 : (p < 0) ? 0 : (unsigned char)p;
       }
       line++;
       noise++;
@@ -251,9 +251,9 @@ void affine_image_generator06::replace_by_noise(IplImage * image, int value)
 
     for(int x = 0; x < image->width; x++)
       if (int(row[x]) == value) {
-	row[x] = white_noise[index_white_noise];
-	index_white_noise++;
-	if (index_white_noise >= prime) index_white_noise = 1 + rand() % 6;
+        row[x] = white_noise[index_white_noise];
+        index_white_noise++;
+        if (index_white_noise >= prime) index_white_noise = 1 + rand() % 6;
       }
   }
 }
@@ -268,7 +268,7 @@ void affine_image_generator06::generate_affine_image(void)
     cvSet(generated_image, cvScalar(rand() % 256));
 
   cvWarpAffine(original_image_with_128_as_background, generated_image, &A,
-	       CV_INTER_NN + CV_WARP_FILL_OUTLIERS /* + CV_WARP_INVERSE_MAP*/, cvScalarAll(128));
+               CV_INTER_NN + CV_WARP_FILL_OUTLIERS /* + CV_WARP_INVERSE_MAP*/, cvScalarAll(128));
 
   if (use_random_background)
     replace_by_noise(generated_image, 128);
@@ -283,10 +283,12 @@ void affine_image_generator06::generate_affine_image(void)
   //   mcvSaveImage("g.bmp", generated_image);
   //   exit(0);
 
-
-  if (noise_level > 0 && add_noise)
-    if (use_random_background) add_white_noise(generated_image);
-    else add_white_noise(generated_image, 128);
+  if (noise_level > 0 && add_noise) {
+    if (use_random_background)
+      add_white_noise(generated_image);
+    else
+      add_white_noise(generated_image, 128);
+  }
 
   if (save_images) {
     static int n = 0;

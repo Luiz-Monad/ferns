@@ -23,7 +23,7 @@
 #ifndef fine_gaussian_pyramid_h
 #define fine_gaussian_pyramid_h
 
-#include <cv.h>
+#include "cv.h"
 
 /*
   Handling borders:
@@ -103,9 +103,11 @@ class fine_gaussian_pyramid
 
   int width, height, total_width, total_height, border_size, outer_border, inner_border;
   int number_of_octaves;
-  IplImage * original_image;
   IplImage ** aztec_pyramid;
+#if pyr_debug
+  IplImage * original_image;
   IplImage ** full_images;
+#endif
 
   //private:
   int type;
@@ -114,10 +116,12 @@ class fine_gaussian_pyramid
   void alloc(int width, int height, int outer_border, int nb_levels, int inner_border);
   void free(void);
 
+#if pyr_debug
   void rawReduce(IplImage * original_image, IplImage * halfsize_image);
   void expand(IplImage * original_image, IplImage * dblesize_image);
   void expand(IplImage * original_image, IplImage * dblesize_image, int width, int height);
   void expand(IplImage * original_image, IplImage * final_image, int n);
+#endif
 
   IplImage * intermediate_int_image;
   int widthStep_int;

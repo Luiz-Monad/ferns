@@ -25,11 +25,13 @@
 #include <algorithm>
 #include <iostream>
 
+#include "logger.h"
 #include "buffer_management.h"
 #include "homography_estimator.h"
 #include "cmphomo.h"
 
 using namespace std;
+using namespace plog;
 
 homography_estimator::homography_estimator(void)
 {
@@ -39,7 +41,7 @@ homography_estimator::homography_estimator(void)
   Ut = cvCreateMat(8, 8, CV_32FC1);
   Vt = cvCreateMat(9, 9, CV_32FC1);
 
-  T1	= cvCreateMat(3, 3, CV_32FC1);
+  T1    = cvCreateMat(3, 3, CV_32FC1);
   T2inv = cvCreateMat(3, 3, CV_32FC1);
   tmp   = cvCreateMat(3, 3, CV_32FC1);
 
@@ -47,10 +49,11 @@ homography_estimator::homography_estimator(void)
   B2  = cvCreateMat(4, 1, CV_32FC1);
   X2  = cvCreateMat(3, 1, CV_32FC1);
 
-  u_v_up_vp = 0;
-  normalized_u_v_up_vp = 0;
-  inliers = 0;
-  verbose_level = 0;
+  u_v_up_vp = nullptr;
+  normalized_u_v_up_vp = nullptr;
+  scores = nullptr;
+  sorted_ids = nullptr;
+  inliers = nullptr;
 }
 
 homography_estimator::~homography_estimator(void)
@@ -67,6 +70,8 @@ homography_estimator::~homography_estimator(void)
 
   delete_managed_buffer(u_v_up_vp);
   delete_managed_buffer(normalized_u_v_up_vp);
+  delete_managed_buffer(scores);
+  delete_managed_buffer(sorted_ids);
   delete_managed_buffer(inliers);
 }
 
@@ -85,15 +90,15 @@ bool homography_estimator::estimate(homography06 * H,
                                     const float u3, const float v3, const float up3, const float vp3,
                                     const float u4, const float v4, const float up4, const float vp4)
 {
-	const float a[] = { u1, v1 };
-	const float b[] = { u2, v2 };
-	const float c[] = { u3, v3 };
-	const float d[] = { u4, v4 };
-	const float x[] = { up1, vp1 };
-	const float y[] = { up2, vp2 };
-	const float z[] = { up3, vp3 };
-	const float w[] = { up4, vp4 };
-	homography_from_4corresp(a,b,c,d,x,y,z,w, (float (*)[3]) H->data.fl);
+  const float a[] = { u1, v1 };
+  const float b[] = { u2, v2 };
+  const float c[] = { u3, v3 };
+  const float d[] = { u4, v4 };
+  const float x[] = { up1, vp1 };
+  const float y[] = { up2, vp2 };
+  const float z[] = { up3, vp3 };
+  const float w[] = { up4, vp4 };
+  homography_from_4corresp(a,b,c,d,x,y,z,w, (float (*)[3]) H->data.fl);
 
   return true;
 }
@@ -113,10 +118,10 @@ bool homography_estimator::estimate(homography06 * H,
 
 void homography_estimator::reset_correspondences(int maximum_number_of_correspondences)
 {
-  manage_buffer(u_v_up_vp,            4 * maximum_number_of_correspondences, float);
-  manage_buffer(normalized_u_v_up_vp, 4 * maximum_number_of_correspondences, float);
-  manage_buffer(scores,                   maximum_number_of_correspondences, float);
-  manage_buffer(sorted_ids,               maximum_number_of_correspondences, int);
+  manage_buffer(u_v_up_vp,            4 * maximum_number_of_correspondences);
+  manage_buffer(normalized_u_v_up_vp, 4 * maximum_number_of_correspondences);
+  manage_buffer(scores,                   maximum_number_of_correspondences);
+  manage_buffer(sorted_ids,               maximum_number_of_correspondences);
 
   number_of_correspondences = 0;
 }
@@ -144,7 +149,7 @@ void homography_estimator::add_correspondence(float u, float v, float up, float 
 
 void homography_estimator::normalize(void)
 {
-  float u_sum = 0., v_sum = 0., up_sum = 0., vp_sum = 0;
+  float u_sum = 0.f, v_sum = 0.f, up_sum = 0.f, vp_sum = 0;
 
   for(int i = 0; i < number_of_correspondences; i++) {
     u_sum  += u_v_up_vp[4 * i    ];
@@ -230,14 +235,13 @@ bool homography_estimator::nice_homography(homography06 * H)
 }
 
 
-int homography_estimator::ransac(homography06 * H, const float threshold, const int maximum_number_of_iterations,
+int homography_estimator::ransac(homography06 * H, const float threshold,
+                                 const int maximum_number_of_iterations,
                                  const float P, bool prosac_sampling)
 {
   if (number_of_correspondences < 4) {
-    if (verbose_level >= 1) {
-      cerr << "> [homography_estimator::ransac]:" << endl;
-      cerr << ">    Can't estimate homography with less than 4 correspondences." << endl;
-    }
+    log_error << "[homography_estimator::ransac]"
+              << "Can't estimate homography with less than 4 correspondences." << endl;
     return 0;
   }
 
@@ -246,13 +250,13 @@ int homography_estimator::ransac(homography06 * H, const float threshold, const 
   int N = maximum_number_of_iterations;
 
   number_of_inliers = 0;
-  manage_buffer(inliers, number_of_correspondences, bool);
+  manage_buffer(inliers, number_of_correspondences);
 
-  static bool * current_inliers = 0;
-  manage_buffer(current_inliers, number_of_correspondences, bool);
+  static bool * current_inliers = nullptr;
+  manage_buffer(current_inliers, number_of_correspondences);
 
   int sample_count = 0;
-  int prosac_correspondences = 10;
+  int prosac_correspondences = min(10, number_of_correspondences);
 
   if(prosac_sampling) {
     sort_correspondences();
@@ -287,7 +291,11 @@ int homography_estimator::ransac(homography06 * H, const float threshold, const 
       int current_number_of_inliers = compute_inliers(H, current_inliers, threshold);
 
       if (current_number_of_inliers > number_of_inliers) {
-        if (verbose_level >= 2) cout << "> Iteration " << sample_count << ": " << current_number_of_inliers << " inliers. New N = " << N << endl;
+
+        log_verb << "[homography_estimator::ransac]"
+                 << "Iteration " << sample_count << ": "
+                 << current_number_of_inliers << " inliers. New N = " << N << endl;
+
         double eps = 1. - double(current_number_of_inliers) / number_of_correspondences;
         int newN = (int)(log(1-P)/log(1-pow((1.-eps), 4)));
         if (newN < N) N = newN;
@@ -308,12 +316,15 @@ int homography_estimator::ransac(homography06 * H, const float threshold, const 
 
     old_number_of_inliers = number_of_inliers;
     number_of_inliers = compute_inliers(H, inliers, threshold);
-    if (verbose_level >= 2) cout << "> Refining: " << number_of_inliers << " inliers." << endl;
+
+    log_verb << "[homography_estimator::ransac]"
+             << "Refining: " << number_of_inliers << " inliers." << endl;
+
   } while (number_of_inliers > old_number_of_inliers);
 
   number_of_inliers = compute_inliers(H, inliers, threshold);
 
-  if (verbose_level >= 1) cout << "> homography_estimator::ransac( ) " << number_of_inliers << " inliers found." << endl;
+  log_verb << "[homography_estimator::ransac]" << number_of_inliers << " inliers found." << endl;
 
   return number_of_inliers;
 }

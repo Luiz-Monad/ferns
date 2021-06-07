@@ -21,15 +21,17 @@
   Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 #include <iostream>
-using namespace std;
+#include <cassert>
+#include <cstdlib>
 
-#include <assert.h>
-#include <stdlib.h>
-
+#include "logger.h"
 #include "mcv.h"
 #include "mcvGaussianSmoothing.h"
 #include "fine_gaussian_pyramid.h"
 // #include "linear_filter.h"
+
+using namespace std;
+using namespace plog;
 
 fine_gaussian_pyramid::fine_gaussian_pyramid(int type, int outer_border, int number_of_octaves, int inner_border)
 {
@@ -42,28 +44,32 @@ fine_gaussian_pyramid::fine_gaussian_pyramid(int type, int outer_border, int num
 
   width = height = -1;
 
-  original_image = 0;
-  aztec_pyramid = 0;
-  full_images = 0;
-  coeffs = 0;
-  add_a_row = 0;
-  add_a_col = 0;
+#if pyr_debug
+  original_image = nullptr;
+  full_images = nullptr;
+#endif
+  aztec_pyramid = nullptr;
+  coeffs = nullptr;
+  add_a_row = nullptr;
+  add_a_col = nullptr;
 
-  intermediate_int_image = 0;
+  intermediate_int_image = nullptr;
 }
 
 fine_gaussian_pyramid::fine_gaussian_pyramid(int type, IplImage * image, int outer_border, int number_of_octaves, int inner_border)
 {
   this->type = type;
 
-  original_image = 0;
-  aztec_pyramid = 0;
-  full_images = 0;
-  coeffs = 0;
-  add_a_row = 0;
-  add_a_col = 0;
+#if pyr_debug
+  original_image = nullptr;
+  full_images = nullptr;
+#endif
+  aztec_pyramid = nullptr;
+  coeffs = nullptr;
+  add_a_row = nullptr;
+  add_a_col = nullptr;
 
-  intermediate_int_image = 0;
+  intermediate_int_image = nullptr;
 
   alloc(image->width - 2 * inner_border, image->height - 2 * inner_border, outer_border, number_of_octaves, inner_border);
   set_image(image);
@@ -73,14 +79,16 @@ fine_gaussian_pyramid::fine_gaussian_pyramid(int type, char * image_name, int ou
 {
   this->type = type;
 
-  original_image = 0;
-  aztec_pyramid = 0;
-  full_images = 0;
-  coeffs = 0;
-  add_a_row = 0;
-  add_a_col = 0;
+#if pyr_debug
+  original_image = nullptr;
+  full_images = nullptr;
+#endif
+  aztec_pyramid = nullptr;
+  coeffs = nullptr;
+  add_a_row = nullptr;
+  add_a_col = nullptr;
 
-  intermediate_int_image = 0;
+  intermediate_int_image = nullptr;
 
   IplImage * image = mcvLoadImage(image_name, 0);
   alloc(image->width - 2 * inner_border, image->height - 2 * inner_border, outer_border, number_of_octaves, inner_border);
@@ -95,33 +103,37 @@ fine_gaussian_pyramid::~fine_gaussian_pyramid()
 
 void fine_gaussian_pyramid::free(void)
 {
-  if (original_image != 0)
+#if pyr_debug
+  if (original_image)
     cvReleaseImage(&original_image);
+#endif
 
-  if (aztec_pyramid != 0) {
+  if (aztec_pyramid) {
     for(int i = 0; i < 4 * number_of_octaves; i++)
       if (aztec_pyramid[i] != 0)
-	cvReleaseImage(&aztec_pyramid[i]);
+        cvReleaseImage(&aztec_pyramid[i]);
     delete [] aztec_pyramid;
+    aztec_pyramid = nullptr;
   }
 
-  if (full_images != 0) {
+#if pyr_debug
+  if (full_images) {
     for(int i = 0; i < 4 * number_of_octaves; i++)
       cvReleaseImage(&full_images[i]);
     delete [] full_images;
+    full_images = nullptr;
   }
+#endif
 
-  delete [] coeffs;
-  delete [] add_a_row;
-  delete [] add_a_col;
+  if (coeffs) delete [] coeffs;
+  if (add_a_row) delete [] add_a_row;
+  if (add_a_col) delete [] add_a_col;
 
-  aztec_pyramid = 0;
-  full_images = 0;
-  coeffs = 0;
-  add_a_row = 0;
-  add_a_col = 0;
+  coeffs = nullptr;
+  add_a_row = nullptr;
+  add_a_col = nullptr;
 
-  intermediate_int_image = 0;
+  if (intermediate_int_image) cvReleaseImage(&intermediate_int_image);
 }
 
 int fine_gaussian_pyramid::level_from_scale(float scale)
@@ -131,7 +143,7 @@ int fine_gaussian_pyramid::level_from_scale(float scale)
   case yape_pyramid_5: return 2 + 4 * int(scale);
   case yape_pyramid_7: return 3 + 4 * int(scale);
   default:
-    cerr << "Warning fine_gaussian_pyramid::level_from_scale function called while type = " << type << endl;
+    log_warn << "[fine_gaussian_pyramid::level_from_scale]" << "function called while type = " << type << endl;
     return 2 + 4 * int(scale);
   }
 }
@@ -148,7 +160,8 @@ int fine_gaussian_pyramid::convCoord(int x, int from, int to, unsigned max)
     if (max == 1) {
       int r = x;
       for (int i = from; i < to; i++)
-        r = r*2 + 1;      return r;
+        r = r*2 + 1;
+      return r;
     }
     return x << ( from - to );
   }
@@ -167,6 +180,8 @@ float fine_gaussian_pyramid::convCoordf(float x, int from, int to)
   return x / float(1 << (to - from));
 }
 
+#if pyr_debug
+
 unsigned char * fine_gaussian_pyramid::full_image_row(int level, int y)
 {
   return mcvRow(full_images[level], y + border_size, unsigned char) + border_size;
@@ -177,6 +192,7 @@ int * fine_gaussian_pyramid::full_image_row_int(int level, int y)
   return mcvRow(full_images[level], y + border_size, int) + border_size;
 }
 
+#endif
 
 void fine_gaussian_pyramid::alloc(int width, int height, int outer_border, int number_of_octaves, int inner_border)
 {
@@ -191,13 +207,17 @@ void fine_gaussian_pyramid::alloc(int width, int height, int outer_border, int n
   int octave_total_height = total_height = height + 2 * border_size;
 
   aztec_pyramid = new IplImage*[number_of_octaves * 4];
-  full_images = new IplImage*[number_of_octaves * 4];
   coeffs = new float[number_of_octaves * 4];
+#if pyr_debug
+  full_images = new IplImage*[number_of_octaves * 4];
+#endif
 
   add_a_row = new bool[number_of_octaves * 4];
   add_a_col = new bool[number_of_octaves * 4];
 
+#if pyr_debug
   original_image = cvCreateImage(cvSize(width + 2 * inner_border, height + 2 * inner_border), IPL_DEPTH_8U, 1);
+#endif
   intermediate_int_image = cvCreateImage(cvSize(total_width, total_height), IPL_DEPTH_32S, 1);
   widthStep_int  = intermediate_int_image->widthStep / sizeof(int);
 
@@ -207,20 +227,19 @@ void fine_gaussian_pyramid::alloc(int width, int height, int outer_border, int n
     int n = 0;
     for(int i = 0; i < number_of_octaves * 4; i++) {
       if (i > 0 && i % 4 == 0) {
-	add_a_col[n] = (octave_total_width % 2 == 1);
-	add_a_row[n] = (octave_total_height % 2 == 1);
-	n++;
+        add_a_col[n] = (octave_total_width % 2 == 1);
+        add_a_row[n] = (octave_total_height % 2 == 1);
+        n++;
 
-	octave_total_width /= 2;
-	octave_total_height /= 2;
-	c /= 2;
+        octave_total_width /= 2;
+        octave_total_height /= 2;
+        c /= 2;
       }
 
       if (i % 4 == 1)
-	aztec_pyramid[i] = cvCreateImage(cvSize(octave_total_width, octave_total_height), IPL_DEPTH_8U, 1);
+        aztec_pyramid[i] = cvCreateImage(cvSize(octave_total_width, octave_total_height), IPL_DEPTH_8U, 1);
       else
-	aztec_pyramid[i] = 0;
-      full_images[i] = 0;
+        aztec_pyramid[i] = nullptr;
       coeffs[i] = c;
     }
     break;
@@ -230,46 +249,47 @@ void fine_gaussian_pyramid::alloc(int width, int height, int outer_border, int n
     int n = 0;
     for(int i = 0; i < number_of_octaves * 4; i++) {
       if (i > 0 && i % 4 == 0) {
-	add_a_col[n] = (octave_total_width % 2 == 1);
-	add_a_row[n] = (octave_total_height % 2 == 1);
-	n++;
+        add_a_col[n] = (octave_total_width % 2 == 1);
+        add_a_row[n] = (octave_total_height % 2 == 1);
+        n++;
 
-	octave_total_width /= 2;
-	octave_total_height /= 2;
-	c /= 2;
+        octave_total_width /= 2;
+        octave_total_height /= 2;
+        c /= 2;
       }
 
       if (i % 4 == 3 || i % 4 == 0)
-	aztec_pyramid[i] = cvCreateImage(cvSize(octave_total_width, octave_total_height), IPL_DEPTH_8U, 1);
+        aztec_pyramid[i] = cvCreateImage(cvSize(octave_total_width, octave_total_height), IPL_DEPTH_8U, 1);
       else
-	aztec_pyramid[i] = 0;
-      full_images[i] = 0;
+        aztec_pyramid[i] = nullptr;
       coeffs[i] = c;
     }
     break;
   }
+#if pyr_debug
   case full_pyramid_333:
   case full_pyramid_357:
     {
       float c = 1.F;
       int n = 0;
       for(int i = 0; i < number_of_octaves * 4; i++) {
-	if (i > 0 && i % 4 == 0) {
-	  add_a_col[n] = (octave_total_width % 2 == 1);
-	  add_a_row[n] = (octave_total_height % 2 == 1);
-	  n++;
+        if (i > 0 && i % 4 == 0) {
+          add_a_col[n] = (octave_total_width % 2 == 1);
+          add_a_row[n] = (octave_total_height % 2 == 1);
+          n++;
 
-	  octave_total_width /= 2;
-	  octave_total_height /= 2;
-	  c /= 2;
-	}
+          octave_total_width /= 2;
+          octave_total_height /= 2;
+          c /= 2;
+        }
 
-	full_images[i]   = cvCreateImage(cvSize(total_width,        total_height),        IPL_DEPTH_8U, 1);
-	aztec_pyramid[i] = cvCreateImage(cvSize(octave_total_width, octave_total_height), IPL_DEPTH_8U, 1);
-	coeffs[i] = c;
+        full_images[i]   = cvCreateImage(cvSize(total_width,        total_height),        IPL_DEPTH_8U, 1);
+        aztec_pyramid[i] = cvCreateImage(cvSize(octave_total_width, octave_total_height), IPL_DEPTH_8U, 1);
+        coeffs[i] = c;
       }
       break;
     }
+#endif
   default: ;
   }
 }
@@ -281,7 +301,9 @@ void fine_gaussian_pyramid::set_image(const IplImage * image)
     alloc(image->width - 2 * inner_border, image->height - 2 * inner_border, outer_border, number_of_octaves, inner_border);
   }
 
+#if pyr_debug
   cvCopy(image, original_image);
+#endif
 
   CvRect dest_roi = cvRect(outer_border, outer_border, image->width, image->height);
   cvSetImageROI(aztec_pyramid[0], dest_roi);
@@ -375,6 +397,7 @@ void fine_gaussian_pyramid::compute_from_level0(void)
       if (i < number_of_octaves - 1) cvPyrDown(aztec_pyramid[4 * i], aztec_pyramid[4 * i + 4]);
     }
     break;
+#if pyr_debug
   case full_pyramid_333: {
     // Build aztec pyramid:
     for(int i = 0; i < number_of_octaves; i++) {
@@ -415,11 +438,14 @@ void fine_gaussian_pyramid::compute_from_level0(void)
     }
     break;
   }
+#endif
   default:
-    cerr << "fine_gaussian_pyramid::compute_from_level0 wrong type == " << type << endl;
+    log_error << "[fine_gaussian_pyramid::compute_from_level0]" << "wrong type = " << type << endl;
     exit(0);
   }
 }
+
+#if pyr_debug
 
 int fine_gaussian_pyramid::save(char * filename)
 {
@@ -526,3 +552,5 @@ void fine_gaussian_pyramid::expand(IplImage * original_image, IplImage * final_i
     height *= 2;
   }
 }
+
+#endif

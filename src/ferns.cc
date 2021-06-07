@@ -22,9 +22,12 @@
 */
 #include <iostream>
 #include <fstream>
-using namespace std;
 
+#include "logger.h"
 #include "ferns.h"
+
+using namespace std;
+using namespace plog;
 
 // ds_min and ds_max currently ignored. Taking ds_min = ds_max = 0
 ferns::ferns(int number_of_ferns, int number_of_tests_per_fern,
@@ -43,7 +46,7 @@ ferns::ferns(char * filename)
   ifstream f(filename);
 
   if (!f.is_open()) {
-    cerr << "ferns::ferns(char * filename): error reading file " << filename << "." << endl;
+    log_error << "[ferns::ctor]" << "error reading file " << filename << "." << endl;
     correctly_read = false;
     return;
   }
@@ -53,18 +56,18 @@ ferns::ferns(char * filename)
   f.close();
 }
 
-ferns::ferns(ifstream & f)
+ferns::ferns(istream & f)
 {
   load(f);
 }
 
-void ferns::load(ifstream & f)
+void ferns::load(istream & f)
 {
   int nf, nt;
 
   f >> nf >> nt;
   
-  cout << "> [ferns] " << nf << " ferns, " << nt << " tests per fern." << endl;
+  log_info << "[ferns::load]" << nf << " ferns, " << nt << " tests per fern." << endl;
 
   alloc(nf, nt);
 
@@ -91,7 +94,7 @@ bool ferns::save(char * filename)
   ofstream f(filename);
   
   if (!f.is_open()) {
-    cerr << "ferns::save(char * filename): error saving file " << filename << "." << endl;
+    log_error << "[ferns::save]" << "error saving file " << filename << "." << endl;
 
     return false;
   }
@@ -103,7 +106,7 @@ bool ferns::save(char * filename)
   return result;
 }
 
-bool ferns::save(ofstream & f)
+bool ferns::save(ostream & f)
 {
   f << number_of_ferns << " " << number_of_tests_per_fern << endl;
 
@@ -122,12 +125,15 @@ bool ferns::save(ofstream & f)
 
 bool ferns::drop(fine_gaussian_pyramid * pyramid, int x, int y, int level, int * leaves_index)
 {
+#if pyr_debug
   if (pyramid->type == fine_gaussian_pyramid::full_pyramid_357)
     return drop_full_images(pyramid, x, y, level, leaves_index);
   else
+#endif
     return drop_aztec_pyramid(pyramid, x, y, level, leaves_index);
 }
 
+#if pyr_debug
 bool ferns::drop_full_images(fine_gaussian_pyramid * pyramid, int x, int y, int level, int * leaves_index)
 {
   if (pyramid->full_images[level]->width  != width_full_images ||
@@ -161,6 +167,7 @@ bool ferns::drop_full_images(fine_gaussian_pyramid * pyramid, int x, int y, int 
 
   return true;
 }
+#endif
 
 bool ferns::drop_aztec_pyramid(fine_gaussian_pyramid * pyramid, int x, int y, int level, int * leaves_index)
 {
@@ -202,7 +209,7 @@ int * ferns::drop(fine_gaussian_pyramid * pyramid, int x, int y, int level)
   if (drop(pyramid, x, y, level, preallocated_leaves_index))
     return preallocated_leaves_index;
   else
-    return 0;
+    return nullptr;
 }
 
 // private:
@@ -225,6 +232,23 @@ void ferns::alloc(int number_of_ferns, int number_of_tests_per_fern)
   D_full_images = new int[2 * nb_tests];
   for(int i = 0; i < maximum_number_of_octaves; i++)
     D_aztec_pyramid[i] = new int[2 * nb_tests];
+}
+
+ferns::~ferns(void)
+{
+  if (preallocated_leaves_index) delete [] preallocated_leaves_index;
+
+  if (DX1) delete [] DX1;
+  if (DY1) delete [] DY1;
+  if (DS1) delete [] DS1;
+
+  if (DX2) delete [] DX2;
+  if (DY2) delete [] DY2;
+  if (DS2) delete [] DS2;
+
+  if (D_full_images) delete [] D_full_images;
+  for(int i = 0; i < maximum_number_of_octaves; i++)
+    if (D_aztec_pyramid[i]) delete [] D_aztec_pyramid[i];
 }
 
 void ferns::pick_random_tests(int dx_min, int dx_max, int dy_min, int dy_max, int /*ds_min*/, int /*ds_max*/)

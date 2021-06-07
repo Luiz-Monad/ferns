@@ -59,7 +59,7 @@ void homography06::initialize(void)
   rows = 3;
   step = cols * CV_ELEM_SIZE(type);
   data.ptr = (uchar*)new float[cols * rows];
-  refcount = NULL;
+  refcount = nullptr;
 }
 
 homography06::~homography06()
@@ -76,21 +76,21 @@ ostream& operator<< (ostream& o, const homography06& H)
   return o;
 }
 
-void homography06::transform_point(const int u, const int v, int & up, int & vp)
+void homography06::transform_point(const int u, const int v, int & up, int & vp) const
 {
   float inv_k = 1.f / (cvmGet(2, 0) * u + cvmGet(2, 1) * v + cvmGet(2, 2));
   up = int(inv_k * (cvmGet(0, 0) * u + cvmGet(0, 1) * v + cvmGet(0, 2)) + 0.5);
   vp = int(inv_k * (cvmGet(1, 0) * u + cvmGet(1, 1) * v + cvmGet(1, 2)) + 0.5);
 }
 
-void homography06::transform_point(float u, float v, float & up, float & vp)
+void homography06::transform_point(float u, float v, float & up, float & vp) const
 {
   float inv_k = 1.f / (cvmGet(2, 0) * u + cvmGet(2, 1) * v + cvmGet(2, 2));
   up = float(inv_k * (cvmGet(0, 0) * u + cvmGet(0, 1) * v + cvmGet(0, 2)) + 0.5);
   vp = float(inv_k * (cvmGet(1, 0) * u + cvmGet(1, 1) * v + cvmGet(1, 2)) + 0.5);
 }
 
-void homography06::transform_point(double u, double v, double & up, double & vp)
+void homography06::transform_point(double u, double v, double & up, double & vp) const
 {
   double inv_k = 1. / (cvmGet(2, 0) * u + cvmGet(2, 1) * v + cvmGet(2, 2));
   up = double(inv_k * (cvmGet(0, 0) * u + cvmGet(0, 1) * v + cvmGet(0, 2)) + 0.5);

@@ -35,19 +35,16 @@ class pyr_yape06
   int detect(fine_gaussian_pyramid * pyramid, keypoint * keypoints, int max_number_of_keypoints);
 
   IplImage * draw_keypoints(fine_gaussian_pyramid * pyramid, keypoint * keypoints, int number_of_keypoints);
-
-  static void find_second_derivatives_sigma(void);
-  static void find_dog_sigma(void);
-
+  
   void set_laplacian_threshold(int T) { lap_threshold = T; }
   void set_min_eigenvalue_threshold(int T) { min_ev_threshold = T; }
 
   //private:
   void compute_Ds(IplImage * smoothed_image);
   void compute_laplacian(IplImage * smoothed_image, IplImage * laplacian,
-			 const int w, const int h,
-			 const int Dxx, const int Dyy,
-			 const int Dxy, const int Dyx);
+                         const int w, const int h,
+                         const int Dxx, const int Dyy,
+                         const int Dxy, const int Dyx);
   void compute_laplacian(IplImage * smoothed_image);
   void add_local_extrema(fine_gaussian_pyramid * pyramid, IplImage * smoothed_image, int scale);
   int hessian_min_eigen_value(IplImage * smoothed_image, const int tr, const int x, const int y);

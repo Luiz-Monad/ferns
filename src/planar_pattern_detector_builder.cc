@@ -21,22 +21,25 @@
   Street, Fifth Floor, Boston, MA 02110-1301, USA
 */
 #include <algorithm>
-using namespace std;
 
+#include "logger.h"
 #include "mcv.h"
 #include "planar_pattern_detector_builder.h"
 
+using namespace std;
+using namespace plog;
+
 planar_pattern_detector * planar_pattern_detector_builder::build_with_cache(const char * image_name,
-									    affine_transformation_range * range,
-									    int maximum_number_of_points_on_model,
-									    int number_of_generated_images_to_find_stable_points,
-									    double minimum_number_of_views_rate,
-									    int patch_size, int yape_radius, int number_of_octaves,
-									    int number_of_ferns, int number_of_tests_per_fern,
-									    int number_of_samples_for_refinement, int number_of_samples_for_test,
-									    char * given_detector_data_filename,
-									    int roi_up_left_u, int roi_up_left_v,
-									    int roi_bottom_right_u, int roi_bottom_right_v)
+                                                                            affine_transformation_range * range,
+                                                                            int maximum_number_of_points_on_model,
+                                                                            int number_of_generated_images_to_find_stable_points,
+                                                                            double minimum_number_of_views_rate,
+                                                                            int patch_size, int yape_radius, int number_of_octaves,
+                                                                            int number_of_ferns, int number_of_tests_per_fern,
+                                                                            int number_of_samples_for_refinement, int number_of_samples_for_test,
+                                                                            char * given_detector_data_filename,
+                                                                            int roi_up_left_u, int roi_up_left_v,
+                                                                            int roi_bottom_right_u, int roi_bottom_right_v)
 {
   planar_pattern_detector * detector = new planar_pattern_detector();
 
@@ -49,41 +52,42 @@ planar_pattern_detector * planar_pattern_detector_builder::build_with_cache(cons
     strcpy(detector_data_filename, given_detector_data_filename);
 
   if (detector->load(detector_data_filename))
-    cout << "> [planar_pattern_detector_builder] " << detector_data_filename << " file read." << endl;
+    log_info << "[planar_pattern_detector_builder::build_with_cache]" << detector_data_filename << " file read." << endl;
   else {
     delete detector;
 
-    cout << "> [planar_pattern_detector_builder] Can't find file " << detector_data_filename << "." << endl;
-    cout << "> [planar_pattern_detector_builder] Creating one..." << endl;
+    log_verb << "[planar_pattern_detector_builder::build_with_cache]"
+             << "Can't find file " << detector_data_filename << "." << endl
+             << "Creating one..." << endl;
 
     detector = learn(image_name,
-		     range,
-		     maximum_number_of_points_on_model,
-		     number_of_generated_images_to_find_stable_points,
-		     minimum_number_of_views_rate,
-		     patch_size, yape_radius, number_of_octaves,
-		     number_of_ferns, number_of_tests_per_fern,
-		     number_of_samples_for_refinement, number_of_samples_for_test,
-		     roi_up_left_u, roi_up_left_v,
-		     roi_bottom_right_u, roi_bottom_right_v);
+                     range,
+                     maximum_number_of_points_on_model,
+                     number_of_generated_images_to_find_stable_points,
+                     minimum_number_of_views_rate,
+                     patch_size, yape_radius, number_of_octaves,
+                     number_of_ferns, number_of_tests_per_fern,
+                     number_of_samples_for_refinement, number_of_samples_for_test,
+                     roi_up_left_u, roi_up_left_v,
+                     roi_bottom_right_u, roi_bottom_right_v);
 
-    if (detector != 0) detector->save(detector_data_filename);
+    if (detector) detector->save(detector_data_filename);
   }
 
   return detector;
 }
 
 planar_pattern_detector * planar_pattern_detector_builder::force_build(const char * image_name,
-								       affine_transformation_range * range,
-								       int maximum_number_of_points_on_model,
-								       int number_of_generated_images_to_find_stable_points,
-								       double minimum_number_of_views_rate,
-								       int patch_size, int yape_radius, int number_of_octaves,
-								       int number_of_ferns, int number_of_tests_per_fern,
-								       int number_of_samples_for_refinement, int number_of_samples_for_test,
-								       char * given_detector_data_filename,
-								       int roi_up_left_u, int roi_up_left_v,
-								       int roi_bottom_right_u, int roi_bottom_right_v)
+                                                                       affine_transformation_range * range,
+                                                                       int maximum_number_of_points_on_model,
+                                                                       int number_of_generated_images_to_find_stable_points,
+                                                                       double minimum_number_of_views_rate,
+                                                                       int patch_size, int yape_radius, int number_of_octaves,
+                                                                       int number_of_ferns, int number_of_tests_per_fern,
+                                                                       int number_of_samples_for_refinement, int number_of_samples_for_test,
+                                                                       char * given_detector_data_filename,
+                                                                       int roi_up_left_u, int roi_up_left_v,
+                                                                       int roi_bottom_right_u, int roi_bottom_right_v)
 {
   char detector_data_filename[1000];
   if (given_detector_data_filename == 0)
@@ -91,20 +95,20 @@ planar_pattern_detector * planar_pattern_detector_builder::force_build(const cha
   else
     strcpy(detector_data_filename, given_detector_data_filename);
 
-  cout << "> [planar_pattern_detector_builder] Creating file " << detector_data_filename << ":" << endl;
+  log_info << "[planar_pattern_detector_builder::force_build]" << "Creating file " << detector_data_filename << ":" << endl;
 
   planar_pattern_detector * detector = learn(image_name,
-					     range,
-					     maximum_number_of_points_on_model,
-					     number_of_generated_images_to_find_stable_points,
-					     minimum_number_of_views_rate,
-					     patch_size, yape_radius, number_of_octaves,
-					     number_of_ferns, number_of_tests_per_fern,
-					     number_of_samples_for_refinement, number_of_samples_for_test,
-					     roi_up_left_u, roi_up_left_v,
-					     roi_bottom_right_u, roi_bottom_right_v);
+                                             range,
+                                             maximum_number_of_points_on_model,
+                                             number_of_generated_images_to_find_stable_points,
+                                             minimum_number_of_views_rate,
+                                             patch_size, yape_radius, number_of_octaves,
+                                             number_of_ferns, number_of_tests_per_fern,
+                                             number_of_samples_for_refinement, number_of_samples_for_test,
+                                             roi_up_left_u, roi_up_left_v,
+                                             roi_bottom_right_u, roi_bottom_right_v);
 
-  if (detector != 0) detector->save(detector_data_filename);
+  if (detector) detector->save(detector_data_filename);
 
   return detector;
 }
@@ -116,47 +120,48 @@ planar_pattern_detector * planar_pattern_detector_builder::just_load(const char 
   const char * detector_data_filename = given_detector_data_filename;
 
   if (detector->load(detector_data_filename)) {
-    cout << "> [planar_pattern_detector_builder] " << detector_data_filename << " file read." << endl;
+    log_info << "[planar_pattern_detector_builder::just_load]" << detector_data_filename << " file read." << endl;
     return detector;
   } else {
-    cerr << ">! [planar_pattern_detector_builder] Couldn't find file " << detector_data_filename << "." << endl;
-    return 0;
+    log_error << "[planar_pattern_detector_builder::just_load]" << "Couldn't find file " << detector_data_filename << "." << endl;
+    return nullptr;
   }
 }
 
 planar_pattern_detector * planar_pattern_detector_builder::learn(const char * image_name,
-								 affine_transformation_range * range,
-								 int maximum_number_of_points_on_model,
-								 int number_of_generated_images_to_find_stable_points,
-								 double minimum_number_of_views_rate,
-								 int patch_size, int yape_radius, int number_of_octaves,
-								 int number_of_ferns, int number_of_tests_per_fern,
-								 int number_of_samples_for_refinement, int number_of_samples_for_test,
-								 int roi_up_left_u, int roi_up_left_v,
-								 int roi_bottom_right_u, int roi_bottom_right_v)
+                                                                 affine_transformation_range * range,
+                                                                 int maximum_number_of_points_on_model,
+                                                                 int number_of_generated_images_to_find_stable_points,
+                                                                 double minimum_number_of_views_rate,
+                                                                 int patch_size, int yape_radius, int number_of_octaves,
+                                                                 int number_of_ferns, int number_of_tests_per_fern,
+                                                                 int number_of_samples_for_refinement, int number_of_samples_for_test,
+                                                                 int roi_up_left_u, int roi_up_left_v,
+                                                                 int roi_bottom_right_u, int roi_bottom_right_v)
 {
   planar_pattern_detector * detector = new planar_pattern_detector();
 
   strcpy(detector->image_name, image_name);
 
   detector->model_image = mcvLoadImage(image_name, 0);
-  if (detector->model_image == 0) return 0;
+  if (!detector->model_image) return nullptr;
   if (detector->model_image->nChannels != 1) {
-    cerr << ">! [planar_pattern_detector_builder::learn] Wrong image format" << endl;
-    return 0;
+    log_error << "[planar_pattern_detector_builder::learn]" << "Wrong image format" << endl;
+    return nullptr;
   }
 
+  log_info << "[planar_pattern_detector_builder::learn]" << "start" << endl;
+
   if (roi_up_left_u == -1) {
-    char roi_filename[1000];
-    sprintf(roi_filename, "%s.roi", image_name);
+    string roi_filename = string(image_name) + ".roi";
     ifstream roif(roi_filename);
     if (roif.good()) {
-      cout << "> [planar_pattern_detector_builder::learn] Reading ROI from file " << roi_filename << ".\n";
+      log_verb << "[planar_pattern_detector_builder::learn]" << "Reading ROI from file " << roi_filename << ".\n";
       for(int i = 0; i < 4; i++)
-	roif >> detector->u_corner[i] >> detector->v_corner[i];
+        roif >> detector->u_corner[i] >> detector->v_corner[i];
       roif.close();
     } else {
-      cout << "> [planar_pattern_detector_builder::learn] No ROI file found. Taking the whole image as object." << endl;
+      log_verb << "[planar_pattern_detector_builder::learn]" << "No ROI file found. Taking the whole image as object." << endl;
 
       detector->u_corner[0] = 0;                                detector->v_corner[0] = 0;
       detector->u_corner[1] = detector->model_image->width - 1; detector->v_corner[1] = 0;
@@ -176,43 +181,46 @@ planar_pattern_detector * planar_pattern_detector_builder::learn(const char * im
 
   detector->image_generator->set_original_image(detector->model_image);
   detector->image_generator->set_mask(detector->u_corner[0], detector->v_corner[0],
-				      detector->u_corner[2], detector->v_corner[2]);
+                                      detector->u_corner[2], detector->v_corner[2]);
   detector->image_generator->set_transformation_range(range);
 
 
   detector->pyramid = new fine_gaussian_pyramid(yape_radius, patch_size, number_of_octaves);
 
   detect_most_stable_model_points(detector,
-				  maximum_number_of_points_on_model,
+                                  maximum_number_of_points_on_model,
                                   yape_radius, number_of_octaves,
                                   number_of_generated_images_to_find_stable_points,
                                   minimum_number_of_views_rate);
 
+  string model_points_filename = string(image_name) + ".model_points.bmp";
+  detector->save_image_of_model_points(model_points_filename.c_str(), patch_size);
 
-  detector->save_image_of_model_points("model_points.bmp", patch_size);
+  log_verb << "[planar_pattern_detector_builder::learn]" << "Creating classifier: " << endl;
 
-  cout << "> [planar_pattern_detector_builder] Creating classifier: " << flush;
   detector->classifier = new fern_based_point_classifier(maximum_number_of_points_on_model,
-							 number_of_ferns, number_of_tests_per_fern,
-							 -patch_size / 2, patch_size / 2, -patch_size / 2, patch_size / 2, 0, 0);
-  cout << endl;
-  cout << "> [planar_pattern_detector_builder] Ok." << endl;
+                                                         number_of_ferns, number_of_tests_per_fern,
+                                                         -patch_size / 2, patch_size / 2, -patch_size / 2, patch_size / 2, 0, 0);
 
-  cout << "> [planar_pattern_detector_builder] Training: " << endl;
+  log_verb << "[planar_pattern_detector_builder::learn]" << "Training: " << endl;
+
   detector->classifier->reset_leaves_distributions();
-  cout << "   - leaves distributions reset ok. " << flush;
+  log_verb << "[planar_pattern_detector_builder::learn]"
+              "   - leaves distributions reset ok. " << flush;
+
   detector->classifier->train(detector->model_points, detector->number_of_model_points,
-			      number_of_octaves, yape_radius, number_of_samples_for_refinement,
-			      detector->image_generator);
+                              number_of_octaves, yape_radius, number_of_samples_for_refinement,
+                              detector->image_generator);
+  log_verb << "[planar_pattern_detector_builder::learn]"
+           << "   - training... " << number_of_samples_for_refinement << " images generated." << endl;
 
-  cout << "   - training... " << number_of_samples_for_refinement << " images generated." << endl;
   detector->classifier->finalize_training();
-  cout << "   - posterior probabilities computed." << endl;
+  log_verb << "[planar_pattern_detector_builder::learn]"
+              "   - posterior probabilities computed." << endl;
 
-  cout << "   - testing:" << endl;
   detector->mean_recognition_rate = detector->classifier->test(detector->model_points, detector->number_of_model_points,
-							       number_of_octaves, yape_radius, number_of_samples_for_test,
-							       detector->image_generator);
+                                                               number_of_octaves, yape_radius, number_of_samples_for_test,
+                                                               detector->image_generator);
 
   return detector;
 }
@@ -223,35 +231,36 @@ static bool cmp_tmp_model_points(pair<keypoint, int> p1, pair<keypoint, int> p2)
 }
 
 void planar_pattern_detector_builder::detect_most_stable_model_points(planar_pattern_detector * detector,
-								      int maximum_number_of_points_on_model,
-								      int /*yape_radius*/, int /*number_of_octaves*/,
-								      int number_of_generated_images,
-								      double minimum_number_of_views_rate)
+                                                                      int maximum_number_of_points_on_model,
+                                                                      int /*yape_radius*/, int /*number_of_octaves*/,
+                                                                      int number_of_generated_images,
+                                                                      double minimum_number_of_views_rate)
 {
-  cout << "> [planar_pattern_detector_builder] Determining most stable points:" << endl;
+  log_info << "[planar_pattern_detector_builder::detect_most_stable_model_points]"
+           << "Determining most stable points:" << endl;
 
   const int K = 2;
   vector< pair<keypoint, int> > tmp_model_point_vector;
 
   fine_gaussian_pyramid    * pyramid         = detector->pyramid;
   affine_image_generator06 * image_generator = detector->image_generator;
-  pyr_yape06               * point_detector  = detector->point_detector;
 
   image_generator->disable_random_background();
   image_generator->generate_Id_image();
   pyramid->set_image(image_generator->generated_image);
-  if (point_detector == 0) detector->point_detector = new pyr_yape06(); point_detector = detector->point_detector;
   keypoint * tmp_model_point_array = new keypoint[K * maximum_number_of_points_on_model];
 
   for(int i = 0; i < number_of_generated_images; i++) {
-    cout << "   (Generating views: " << number_of_generated_images - i << ")     \r" << flush;
+    if (i % 50 == 0)
+      log_verb << "[planar_pattern_detector_builder::detect_most_stable_model_points]"
+               << "Generating views " << number_of_generated_images - i << endl;
     
     if (i == 0) image_generator->generate_Id_image();
     else        image_generator->generate_random_affine_image();
     pyramid->set_image(image_generator->generated_image);
 
     int current_detected_point_number = detector->point_detector->detect(pyramid, tmp_model_point_array,
-									 K * maximum_number_of_points_on_model);
+                                                                         K * maximum_number_of_points_on_model);
 
     for(int j = 0; j < current_detected_point_number; j++) {
       keypoint * k = tmp_model_point_array + j;
@@ -263,23 +272,25 @@ void planar_pattern_detector_builder::detect_most_stable_model_points(planar_pat
 
       keypoint kd(nu, nv, k->scale);
       if (kd.fr_u() >= detector->u_corner[0] && kd.fr_u() <= detector->u_corner[1] &&
-	  kd.fr_v() >= detector->v_corner[0] && kd.fr_v() <= detector->v_corner[3])	{
-	pair<keypoint, int> * mp = search_for_existing_model_point(&tmp_model_point_vector, nu, nv, int(k->scale));
+          kd.fr_v() >= detector->v_corner[0] && kd.fr_v() <= detector->v_corner[3])        {
+        pair<keypoint, int> * mp = search_for_existing_model_point(&tmp_model_point_vector, nu, nv, int(k->scale));
 
-	if (mp != 0) {
-	  // Move the keypoint coordinates in the center of gravity of all agglomerated keypoints:
-	  float n = float(mp->second);
-	  mp->first.u = (mp->first.u * (n - 1) + nu) / n;
-	  mp->first.v = (mp->first.v * (n - 1) + nv) / n;
-	  mp->second++;
-	} else {
-	  keypoint op(nu, nv, k->scale);
-	  tmp_model_point_vector.push_back(pair<keypoint, int>(op, 1));
-	}
+        if (mp != 0) {
+          // Move the keypoint coordinates in the center of gravity of all agglomerated keypoints:
+          float n = float(mp->second);
+          mp->first.u = (mp->first.u * (n - 1) + nu) / n;
+          mp->first.v = (mp->first.v * (n - 1) + nv) / n;
+          mp->second++;
+        } else {
+          keypoint op(nu, nv, k->scale);
+          tmp_model_point_vector.push_back(pair<keypoint, int>(op, 1));
+        }
       }
     }
   }
-  cout << "> [planar_pattern_detector_builder] " << number_of_generated_images << " images generated; " << int( tmp_model_point_vector.size() ) << " points detected." << endl;
+  log_verb << "[planar_pattern_detector_builder::detect_most_stable_model_points]"
+           << number_of_generated_images << " images generated; "
+           << int( tmp_model_point_vector.size() ) << " points detected." << endl;
 
   sort(tmp_model_point_vector.begin(), tmp_model_point_vector.end(), cmp_tmp_model_points);
 
@@ -296,15 +307,19 @@ void planar_pattern_detector_builder::detect_most_stable_model_points(planar_pat
     detector->model_points[it_index].scale = it->first.scale;
     detector->model_points[it_index].class_index = it_index;
 
-    if (it_index == 0) cout << "> [planar_pattern_detector_builder] Point " << it_index << " detected " << it->second << " times.." << flush;
+    if (it_index == 0)
+      log_debug << "[planar_pattern_detector_builder::detect_most_stable_model_points]"
+                << "Point " << it_index << " detected " << it->second << " times.." << endl;
   }
   if (it_index > 0)
-    cout << "..point " << it_index - 1 << " detected " << (it-1)->second << " times ("
-         << number_of_generated_images
-         << " generated views, "
-         << minimum_number_of_views_rate * 100 << "% minimum rate)." << endl;
+    log_debug << "[planar_pattern_detector_builder::detect_most_stable_model_points]"
+              << "Point " << it_index - 1 << " detected " << (it-1)->second << " times ("
+              << number_of_generated_images
+              << " generated views, "
+              << minimum_number_of_views_rate * 100 << "% minimum rate)." << endl;
   else
-    cout << ">! [planar_pattern_detector_builder] No model points detected ?!?! gloups..." << endl;
+    log_warn << "[planar_pattern_detector_builder::detect_most_stable_model_points]"
+             << "No model points detected ?!" << endl;
 
   detector->number_of_model_points = it_index;
 
@@ -327,5 +342,5 @@ search_for_existing_model_point(vector< pair<keypoint, int> > * tmp_model_points
         return &(*it);
     }
 
-  return 0;
+  return nullptr;
 }
