@@ -1,0 +1,4 @@
+
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+  set(BUILD_SHARED_LIBS ON)
+endif()

@@ -1,0 +1,343 @@
+{
+  "environments": [
+    {
+      "P_project_source": "C:\\extern\\workbench\\ohanar-v3-app\\thirdparty\\ferns\\ferns",
+      "P_project_output": "C:\\extern\\workbench\\ohanar-v3\\out",
+      "VCPKG_DOWNLOADS": "C:\\extern\\workbench\\ohanar-v3\\build/download",
+      "VCPKG_MAX_CONCURRENCY": "16",
+      "VCPKG_DEFAULT_HOST_TRIPLET": "x64-windows-static",
+      "X_install_root": "C:\\extern\\workbench\\ohanar-v3\\build/install",
+      "VCPKG_OVERLAY_PORTS": "C:\\extern\\workbench\\ohanar-v3-app/ports",
+      "VCPKG_OVERLAY_TRIPLETS": "C:\\extern\\workbench\\ohanar-v3-app/targets",
+      "VCPKG_DEFAULT_BINARY_CACHE": "C:\\extern\\workbench\\ohanar-v3\\build/caches",
+      "VCPKG_ROOT": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg",
+      "X_packages_root": "C:\\extern\\workbench\\ohanar-v3\\build/packages",
+      "X_buildtrees_root": "C:\\extern\\workbench\\ohanar-v3\\build/buildtrees",
+      "P_project_build": "C:\\extern\\workbench\\ohanar-v3\\build/outputs",
+      "VCPKG_DEFAULT_TRIPLET": "x64-windows-static",
+      "environment": "pmake"
+    }
+  ],
+  "configurations": [
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-aarch64-release",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-aarch64",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-aarch64-release",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-aarch64-release",
+      "cmakeCommandArgs": "",
+      "configurationType": "Release",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-aarch64-debug",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-aarch64",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-aarch64-debug",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-aarch64-debug",
+      "cmakeCommandArgs": "",
+      "configurationType": "Debug",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-amd64-release",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-amd64",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-amd64-release",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-amd64-release",
+      "cmakeCommandArgs": "",
+      "configurationType": "Release",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-amd64-debug",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-amd64",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-amd64-debug",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-amd64-debug",
+      "cmakeCommandArgs": "",
+      "configurationType": "Debug",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-armeabi-release",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-armeabi",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-armeabi-release",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-armeabi-release",
+      "cmakeCommandArgs": "",
+      "configurationType": "Release",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-armeabi-debug",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-armeabi",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-armeabi-debug",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-armeabi-debug",
+      "cmakeCommandArgs": "",
+      "configurationType": "Debug",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-x86-release",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-x86",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-x86-release",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-x86-release",
+      "cmakeCommandArgs": "",
+      "configurationType": "Release",
+      "buildCommandArgs": ""
+    },
+    {
+      "buildRoot": "C:\\extern\\workbench\\ohanar-v3\\build\\outputs\\ferns\\ndk-android-x86-debug",
+      "intelliSenseMode": "",
+      "inheritEnvironments": [
+        "pmake"
+      ],
+      "generator": "Ninja",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app\\pmake/toolchain.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "PMAKE_CHAINLOAD_TOOLCHAIN_FILE",
+          "value": "C:\\extern\\workbench\\ohanar-v3-app/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_TARGET_TRIPLET",
+          "value": "ndk-android-x86",
+          "type": "STRING"
+        },
+        {
+          "name": "VCPKG_INSTALL_OPTIONS",
+          "value": "--x-buildtrees-root=C:\\extern\\workbench\\ohanar-v3\\build/buildtrees;--x-packages-root=C:\\extern\\workbench\\ohanar-v3\\build/packages",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_MAKE_PROGRAM",
+          "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe",
+          "type": "STRING"
+        }
+      ],
+      "name": "ndk-android-x86-debug",
+      "installRoot": "C:\\extern\\workbench\\ohanar-v3\\out\\ferns\\ndk-android-x86-debug",
+      "cmakeCommandArgs": "",
+      "configurationType": "Debug",
+      "buildCommandArgs": ""
+    }
+  ]
+}

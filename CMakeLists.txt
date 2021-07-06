@@ -1,29 +1,49 @@
-cmake_minimum_required(VERSION 2.8)
-project(ferns)
+# ----------------------------------------------------------------------------
+#  Root CMake file for Ferns
+# ----------------------------------------------------------------------------
 
-find_package(OpenCV REQUIRED)
-find_package(ZLIB REQUIRED)
+cmake_minimum_required(VERSION 3.20)
+cmake_policy(VERSION 3.20)
 
-include_directories(include)
-include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+enable_language(CXX C)
+project(Ferns VERSION "1.0.0" LANGUAGES CXX C)
 
-add_executable(ferns_demo
-  src/affine_image_generator06.cc
-  src/affine_transformation_range.cc
-  src/buffer_management.cc
-  src/cmphomo.cc
-  src/fern_based_point_classifier.cc
-  src/ferns.cc
-  src/fine_gaussian_pyramid.cc
-  src/homography_estimator.cc
-  src/homography06.cc
-  src/main.cc
-  src/mcv.cc
-  src/mcvGaussianSmoothing.cc
-  src/planar_pattern_detector.cc
-  src/planar_pattern_detector_builder.cc  
-  src/pyr_yape06.cc
-  src/template_matching_based_tracker.cc
-)
+set(FRN_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(FRN_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(ferns_demo ${OpenCV_LIBRARIES} ${ZLIB_LIBRARIES})
+# ----------------------------------------------------------------------------
+# Build options
+# ----------------------------------------------------------------------------
+
+option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
+
+# ----------------------------------------------------------------------------
+# Other 3rd-party libraries/tools
+# ----------------------------------------------------------------------------
+
+include(cmake/find_lib_thirdy.cmake)
+
+# ----------------------------------------------------------------------------
+# Features
+# ----------------------------------------------------------------------------
+
+include(portfile.cmake)
+
+# ----------------------------------------------------------------------------
+# Solution folders:
+# ----------------------------------------------------------------------------
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
+
+# ----------------------------------------------------------------------------
+# Process subdirectories
+# ----------------------------------------------------------------------------
+
+add_subdirectory(src)
+
+# ----------------------------------------------------------------------------
+# Summary:
+# ----------------------------------------------------------------------------
+
+include(cmake/summary/dashboard.cmake)

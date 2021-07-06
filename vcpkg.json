@@ -1,0 +1,12 @@
+{
+  "name": "ferns",
+  "version-string": "1.0.0",
+  "homepage": "http://cvlab.epfl.ch/software/ferns/index.php",
+  "description": "Ferns Based Matching && Tracking",
+  "dependencies": [
+    "opencv4-local",
+    "zlib"
+  ],
+  "default-features": [],
+  "features": []
+}

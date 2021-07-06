@@ -23,6 +23,11 @@
 #ifndef GENERAL_H
 #define GENERAL_H
 
+#define FRN_VERSION_MAJOR    1
+#define FRN_VERSION_MINOR    0
+#define FRN_VERSION_REVISION 0
+#define FRN_VERSION_STATUS   ""
+
 #include <stdlib.h>
 
 float rand_01(void);

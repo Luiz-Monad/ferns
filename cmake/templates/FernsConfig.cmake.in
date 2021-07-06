@@ -1,0 +1,14 @@
+
+set(TGT Ferns)
+
+get_filename_component(${TGT}_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+include(CMakeFindDependencyMacro)
+find_dependency(OpenCV)
+
+if(NOT TARGET ${TGT}::${TGT})
+    include("${${TGT}_CMAKE_DIR}/${TGT}Targets.cmake")
+endif()
+
+string(TOLOWER ${TGT} LTGT)
+set(${TGT}_lIBRARIES ${TGT}::${LTGT})
