@@ -3,6 +3,8 @@
 # ----------------------------------------------------------------------------
 
 set(TGT frns.3rdparty)
+set(TGT_DIR Ferns)
+set(TGT_FILE Ferns3rdpartyTargets.cmake)
 
 add_library(${TGT} INTERFACE)
 
@@ -11,21 +13,21 @@ install(
   EXPORT ${TGT}-targets
 )
 
-# Deploy the targets to a script.
-include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${TGT})
-install(
-  EXPORT ${TGT}-targets
-  FILE ${TGT}Targets.cmake
-  NAMESPACE ${TGT}::
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
-
 # Now export the target itself.
 export(
   EXPORT ${TGT}-targets
-  FILE ${CMAKE_CURRENT_BINARY_DIR}/${TGT}/${TGT}Targets.cmake
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/${TGT}/${TGT_FILE}
   NAMESPACE ${TGT}::
+)
+
+# Deploy the targets to a script.
+include(GNUInstallDirs)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_DATAROOTDIR}/${TGT_DIR})
+install(
+  EXPORT ${TGT}-targets
+  FILE ${TGT_FILE}
+  NAMESPACE ${TGT}::
+  DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # ----------------------------------------------------------------------------

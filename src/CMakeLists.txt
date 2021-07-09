@@ -70,7 +70,7 @@ target_link_libraries(
 set_target_properties(${TGT} PROPERTIES EXPORT_NAME ${LTGT})
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${TGT})
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_DATAROOTDIR}/${TGT})
 
 # Deploy the binary targets.
 install(
