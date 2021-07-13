@@ -8,8 +8,11 @@ cmake_policy(VERSION 3.20)
 enable_language(CXX C)
 project(Ferns VERSION "1.0.0" LANGUAGES CXX C)
 
-set(FRN_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(FRN_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(QVR_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(QVR_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
+
+set(QVR_VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/general.h)
+set(QVR_VERSION_ID FRN)
 
 # ----------------------------------------------------------------------------
 # Build options

@@ -3,32 +3,15 @@
 # ----------------------------------------------------------------------------
 
 set(TGT frns.3rdparty)
-set(TGT_DIR Ferns)
-set(TGT_FILE Ferns3rdpartyTargets.cmake)
+set(TGT_NS Ferns)
+set(TGT_FILE 3rdparty)
 
-add_library(${TGT} INTERFACE)
+if((NOT TARGET ${TGT}) AND (NOT TARGET ${TGT_NS}::${TGT}))
 
-install(
-  TARGETS ${TGT}
-  EXPORT ${TGT}-targets
-)
+  include(cmake/targets.cmake)
+  qvr_install_dependency(${TGT} NS ${TGT_NS} FILE ${TGT_FILE})
 
-# Now export the target itself.
-export(
-  EXPORT ${TGT}-targets
-  FILE ${CMAKE_CURRENT_BINARY_DIR}/${TGT}/${TGT_FILE}
-  NAMESPACE ${TGT}::
-)
-
-# Deploy the targets to a script.
-include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_DATAROOTDIR}/${TGT_DIR})
-install(
-  EXPORT ${TGT}-targets
-  FILE ${TGT_FILE}
-  NAMESPACE ${TGT}::
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+endif()
 
 # ----------------------------------------------------------------------------
 #  Detect 3rd-party libraries

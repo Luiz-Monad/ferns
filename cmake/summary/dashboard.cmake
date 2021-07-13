@@ -34,10 +34,10 @@ include(cmake/summary/version.cmake)
 find_host_package(Git QUIET)
 
 if(NOT DEFINED _TMP_VCSVERSION AND GIT_FOUND)
-  ocv_git_describe(_TMP_VCSVERSION "${FRN_ROOT_DIR}")
+  qvr_git_describe(_TMP_VCSVERSION "${QVR_ROOT_DIR}")
 elseif(NOT DEFINED _TMP_VCSVERSION)
   # We don't have git:
-  set(_TMP_VCSVERSION "unknown")
+  set(_TMP_VCSVERSION ${QVR_VERSION})
 endif()
 
 # ----------------------------------------------------------------------------
@@ -45,7 +45,7 @@ endif()
 # ----------------------------------------------------------------------------
 
 status("")
-status("General Irrlicht configuration ${_TMP_VERSION} =======================================")
+status("General Ferns configuration ${QVR_VERSION} =======================================")
 if(_TMP_VCSVERSION)
   status("  Version control:" ${_TMP_VCSVERSION})
 endif()
@@ -107,6 +107,20 @@ status("")
 status("  Modules:")
 status("    To be built:" ${BUILDSYSTEM_TARGETS})
 
+# ================== Windows RT features ==================
+if(WIN32)
+status("")
+status("  Windows RT support:" WINRT THEN YES ELSE NO)
+  if(WINRT)
+    status("    Building for Microsoft platform: " ${CMAKE_SYSTEM_NAME})
+    status("    Building for architectures: " ${CMAKE_VS_EFFECTIVE_PLATFORMS})
+    status("    Building for version: " ${CMAKE_SYSTEM_VERSION})
+    if (DEFINED ENABLE_WINRT_MODE_NATIVE)
+      status("    Building for C++ without CX extensions")
+    endif()
+  endif()
+endif(WIN32)
+
 # ========================== MEDIA IO ==========================
 status("")
 status("  I/O: ")
@@ -134,4 +148,4 @@ status("")
 # ----------------------------------------------------------------------------
 
 # This should be the last command
-ocv_cmake_dump_vars("" TOFILE "CMakeVars.txt")
+qvr_cmake_dump_vars("" TOFILE "CMakeVars.txt")

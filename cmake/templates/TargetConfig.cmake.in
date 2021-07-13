@@ -1,9 +1,12 @@
 
-set(__TGT Ferns)
+set(__TGT @TGT@)
+@PACKAGE_INIT@
 
 get_filename_component(${__TGT}_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-include("${${__TGT}_CMAKE_DIR}/${__TGT}3rdpartyTargets.cmake")
+foreach(__dep @TGT_LIB@)
+    include("${${__TGT}_CMAKE_DIR}/${__TGT}${__dep}Targets.cmake")
+endforeach()
 
 if(NOT TARGET ${__TGT}::${__TGT})
     include("${${__TGT}_CMAKE_DIR}/${__TGT}Targets.cmake")
@@ -11,3 +14,9 @@ endif()
 
 string(TOLOWER ${__TGT} __LTGT)
 set(${__TGT}_LIBRARIES ${__TGT}::${__LTGT})
+
+foreach(__dep @TGT_DEP@)
+    include("${${__TGT}_CMAKE_DIR}/${__dep}")
+endforeach()
+
+check_required_components(${__TGT})

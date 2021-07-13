@@ -24,9 +24,10 @@ list(APPEND TGT_INC ${main_dir})
 
 set(pub_hdrs_dir ${CD})
 file(GLOB pub_hdrs ${pub_hdrs_dir}/*.h)
-list(APPEND TGT_PUB_INC ${pub_hdrs_dir})
+list(APPEND TGT_PUB_INC ${pub_hdrs})
+list(APPEND TGT_BUILD_INC ${pub_hdrs_dir})
 
-source_group("Src" FILES ${main_srcs})
+source_group("Source" FILES ${main_srcs})
 source_group("Include" FILES ${main_hdrs})
 source_group("External Include" FILES ${conf_hdrs})
 source_group("Public Include" FILES ${pub_hdrs})
@@ -43,16 +44,15 @@ add_library(
   ${main_srcs} ${main_hdrs}
 )
 
-string(TOLOWER ${TGT} LTGT)
-
 target_include_directories(
   ${TGT} PRIVATE
   ${TGT_INC})
 
+string(TOLOWER ${TGT} __LTGT)
 target_include_directories(
   ${TGT} PUBLIC
-  $<BUILD_INTERFACE:${TGT_PUB_INC}>
-  $<INSTALL_INTERFACE:include/${LTGT}>)
+  $<BUILD_INTERFACE:${TGT_BUILD_INC}>
+  $<INSTALL_INTERFACE:include/${__LTGT}>)
 
 target_compile_features(
   ${TGT} PRIVATE
@@ -60,70 +60,21 @@ target_compile_features(
 
 target_link_libraries(
   ${TGT} PRIVATE
-  ${TGT_LIB}
-)
+  ${TGT_LIB})
+
+# ----------------------------------------------------------------------------
+# Extra Target definitions.
+# ----------------------------------------------------------------------------
+
+#target_compile_definitions(${TGT} PRIVATE example)
+#target_compile_definitions(${TGT} PUBLIC example)
 
 # ----------------------------------------------------------------------------
 # CMake Installation.
 # ----------------------------------------------------------------------------
 
-set_target_properties(${TGT} PROPERTIES EXPORT_NAME ${LTGT})
-
-include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_DATAROOTDIR}/${TGT})
-
-# Deploy the binary targets.
-install(
-  TARGETS ${TGT}
-  EXPORT ${TGT}-targets
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-
-# Deploy the includes.
-install(
-  FILES ${pub_hdrs}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-
-# Deploy the targets to a script.
-install(
-  EXPORT ${TGT}-targets
-  FILE ${TGT}Targets.cmake
-  NAMESPACE ${TGT}::
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
-
-# Deploy ConfigVersion.cmake file.
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/${TGT}ConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${TGT}ConfigVersion.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
-
-# Deploy Config.cmake file.
-configure_package_config_file(
-  ${FRN_ROOT_DIR}/cmake/templates/${TGT}Config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${TGT}Config.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${TGT}Config.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
-
-# Now export the target itself.
-export(
-  EXPORT ${TGT}-targets
-  FILE ${CMAKE_CURRENT_BINARY_DIR}/${TGT}Targets.cmake
-  NAMESPACE ${TGT}::
-)
-
-# Register package in the User Package Registry
-export(PACKAGE ${TGT})
+include(${QVR_ROOT_DIR}/cmake/targets.cmake)
+qvr_install_target(
+  ${TGT}
+  PUB_INC ${TGT_PUB_INC}
+  LIB ${TGT_LIB})

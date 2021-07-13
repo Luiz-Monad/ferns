@@ -1,3 +1,7 @@
+# This file is derived work from part of the OpenCV project.
+# It is subject to the license terms in the LICENSE file found in the top-level directory
+# of this distribution and at http://opencv.org/license.html.
+
 # Compilers:
 # - CV_GCC - GNU compiler (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 # - CV_CLANG - Clang-compatible compiler (CMAKE_CXX_COMPILER_ID MATCHES "Clang" - Clang or AppleClang, see CMP0025)
@@ -25,22 +29,7 @@ if(NOT DEFINED CV_GCC AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif()
 if(NOT DEFINED CV_CLANG AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # Clang or AppleClang (see CMP0025)
   set(CV_CLANG 1)
-  set(CMAKE_COMPILER_IS_CLANGCXX 1)  # TODO next release: remove this
-  set(CMAKE_COMPILER_IS_CLANGCC 1)   # TODO next release: remove this
 endif()
-
-function(access_CMAKE_COMPILER_IS_CLANGCXX)
-  if(NOT OPENCV_SUPPRESS_DEPRECATIONS)
-    message(WARNING "DEPRECATED: CMAKE_COMPILER_IS_CLANGCXX support is deprecated.
-    Consider using:
-    - CV_GCC    # GCC
-    - CV_CLANG  # Clang or AppleClang (see CMP0025)
-")
-  endif()
-endfunction()
-variable_watch(CMAKE_COMPILER_IS_CLANGCXX access_CMAKE_COMPILER_IS_CLANGCXX)
-variable_watch(CMAKE_COMPILER_IS_CLANGCC access_CMAKE_COMPILER_IS_CLANGCXX)
-
 
 # ----------------------------------------------------------------------------
 # Detect Intel ICC compiler
@@ -66,20 +55,20 @@ if(MSVC AND CMAKE_C_COMPILER MATCHES "icc|icl")
 endif()
 
 if(NOT DEFINED CMAKE_CXX_COMPILER_VERSION
-    AND NOT OPENCV_SUPPRESS_MESSAGE_MISSING_COMPILER_VERSION)
+    AND NOT QVR_SUPPRESS_MESSAGE_MISSING_COMPILER_VERSION)
   message(WARNING "IRR: Compiler version is not available: CMAKE_CXX_COMPILER_VERSION is not set")
 endif()
 if((NOT DEFINED CMAKE_SYSTEM_PROCESSOR OR CMAKE_SYSTEM_PROCESSOR STREQUAL "")
-    AND NOT OPENCV_SUPPRESS_MESSAGE_MISSING_CMAKE_SYSTEM_PROCESSOR)
+    AND NOT QVR_SUPPRESS_MESSAGE_MISSING_CMAKE_SYSTEM_PROCESSOR)
   message(WARNING "IRR: CMAKE_SYSTEM_PROCESSOR is not defined. Perhaps CMake toolchain is broken")
 endif()
 if(NOT DEFINED CMAKE_SIZEOF_VOID_P
-    AND NOT OPENCV_SUPPRESS_MESSAGE_MISSING_CMAKE_SIZEOF_VOID_P)
+    AND NOT QVR_SUPPRESS_MESSAGE_MISSING_CMAKE_SIZEOF_VOID_P)
   message(WARNING "IRR: CMAKE_SIZEOF_VOID_P is not defined. Perhaps CMake toolchain is broken")
 endif()
 
 message(STATUS "Detected processor: ${CMAKE_SYSTEM_PROCESSOR}")
-if(OPENCV_SKIP_SYSTEM_PROCESSOR_DETECTION)
+if(QVR_SKIP_SYSTEM_PROCESSOR_DETECTION)
   # custom setup: required variables are passed through cache / CMake's command-line
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "amd64.*|x86_64.*|AMD64.*")
   set(X86_64 1)
@@ -98,15 +87,15 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(mips.*|MIPS.*)")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(riscv.*|RISCV.*)")
   set(RISCV 1)
 else()
-  if(NOT OPENCV_SUPPRESS_MESSAGE_UNRECOGNIZED_SYSTEM_PROCESSOR)
-    message(WARNING "IRR: unrecognized target processor configuration")
+  if(NOT QVR_SUPPRESS_MESSAGE_UNRECOGNIZED_SYSTEM_PROCESSOR)
+    message(WARNING "QVR: unrecognized target processor configuration")
   endif()
 endif()
 
 # Workaround for 32-bit operating systems on x86_64
 if(CMAKE_SIZEOF_VOID_P EQUAL 4 AND X86_64
     AND NOT FORCE_X86_64  # deprecated (2019-12)
-    AND NOT OPENCV_FORCE_X86_64
+    AND NOT QVR_FORCE_X86_64
 )
   message(STATUS "sizeof(void) = 4 on 64 bit processor. Assume 32-bit compilation mode")
   if(X86_64)
@@ -116,7 +105,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4 AND X86_64
 endif()
 # Workaround for 32-bit operating systems on aarch64 processor
 if(CMAKE_SIZEOF_VOID_P EQUAL 4 AND AARCH64
-    AND NOT OPENCV_FORCE_AARCH64
+    AND NOT QVR_FORCE_AARCH64
 )
   message(STATUS "sizeof(void) = 4 on 64 bit processor. Assume 32-bit compilation mode")
   if(AARCH64)
@@ -127,57 +116,57 @@ endif()
 
 
 # Similar code exists in OpenCVConfig.cmake
-if(NOT DEFINED OpenCV_STATIC)
+if(NOT DEFINED QVR_STATIC)
   # look for global setting
   if(NOT DEFINED BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
-    set(OpenCV_STATIC OFF)
+    set(QVR_STATIC OFF)
   else()
-    set(OpenCV_STATIC ON)
+    set(QVR_STATIC ON)
   endif()
 endif()
 
-if(DEFINED OpenCV_ARCH AND DEFINED OpenCV_RUNTIME)
+if(DEFINED QVR_ARCH AND DEFINED QVR_RUNTIME)
   # custom overridden values
 elseif(MSVC)
   # see Modules/CMakeGenericSystem.cmake
   if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
-    set(OpenCV_ARCH "x64")
+    set(QVR_ARCH "x64")
   elseif("${CMAKE_GENERATOR_PLATFORM}" MATCHES "ARM64")
-    set(OpenCV_ARCH "ARM64")
+    set(QVR_ARCH "ARM64")
   elseif("${CMAKE_GENERATOR}" MATCHES "ARM")
-    set(OpenCV_ARCH "ARM")
+    set(QVR_ARCH "ARM")
   elseif("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-    set(OpenCV_ARCH "x64")
+    set(QVR_ARCH "x64")
   else()
-    set(OpenCV_ARCH x86)
+    set(QVR_ARCH x86)
   endif()
 
   if(MSVC_VERSION EQUAL 1400)
-    set(OpenCV_RUNTIME vc8)
+    set(QVR_RUNTIME vc8)
   elseif(MSVC_VERSION EQUAL 1500)
-    set(OpenCV_RUNTIME vc9)
+    set(QVR_RUNTIME vc9)
   elseif(MSVC_VERSION EQUAL 1600)
-    set(OpenCV_RUNTIME vc10)
+    set(QVR_RUNTIME vc10)
   elseif(MSVC_VERSION EQUAL 1700)
-    set(OpenCV_RUNTIME vc11)
+    set(QVR_RUNTIME vc11)
   elseif(MSVC_VERSION EQUAL 1800)
-    set(OpenCV_RUNTIME vc12)
+    set(QVR_RUNTIME vc12)
   elseif(MSVC_VERSION EQUAL 1900)
-    set(OpenCV_RUNTIME vc14)
+    set(QVR_RUNTIME vc14)
   elseif(MSVC_VERSION MATCHES "^191[0-9]$")
-    set(OpenCV_RUNTIME vc15)
+    set(QVR_RUNTIME vc15)
   elseif(MSVC_VERSION MATCHES "^192[0-9]$")
-    set(OpenCV_RUNTIME vc16)
+    set(QVR_RUNTIME vc16)
   else()
-    message(WARNING "IRR does not recognize MSVC_VERSION \"${MSVC_VERSION}\". Cannot set OpenCV_RUNTIME")
+    message(WARNING "IRR does not recognize MSVC_VERSION \"${MSVC_VERSION}\". Cannot set QVR_RUNTIME")
   endif()
 elseif(MINGW)
-  set(OpenCV_RUNTIME mingw)
+  set(QVR_RUNTIME mingw)
 
   if(CMAKE_SYSTEM_PROCESSOR MATCHES "amd64.*|x86_64.*|AMD64.*")
-    set(OpenCV_ARCH x64)
+    set(QVR_ARCH x64)
   else()
-    set(OpenCV_ARCH x86)
+    set(QVR_ARCH x86)
   endif()
 endif()
 
@@ -191,7 +180,7 @@ if(CMAKE_VERSION VERSION_LESS "3.1")
   endforeach()
 endif()
 
-if(NOT OPENCV_SKIP_CMAKE_CXX_STANDARD)
+if(NOT QVR_SKIP_CMAKE_CXX_STANDARD)
   if(CMAKE_CXX11_COMPILE_FEATURES)
     set(HAVE_CXX11 ON)
   endif()
