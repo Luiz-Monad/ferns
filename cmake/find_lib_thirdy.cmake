@@ -14,7 +14,7 @@ if((NOT TARGET ${TGT}) AND (NOT TARGET ${TGT_NS}::${TGT}))
 endif()
 
 # ----------------------------------------------------------------------------
-#  Detect 3rd-party libraries
+#  Detect 3rd-party libraries (VCPKG)
 # ----------------------------------------------------------------------------
 
 # Make all local VCPKG available

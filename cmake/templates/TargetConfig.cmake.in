@@ -5,7 +5,7 @@ set(__TGT @TGT@)
 get_filename_component(${__TGT}_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 foreach(__dep @TGT_LIB@)
-    include("${${__TGT}_CMAKE_DIR}/${__TGT}${__dep}Targets.cmake")
+    include("${${__TGT}_CMAKE_DIR}/${__dep}")
 endforeach()
 
 if(NOT TARGET ${__TGT}::${__TGT})
