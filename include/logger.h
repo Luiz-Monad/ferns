@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#ifndef __ANDROID__
+#ifdef __ANDROID__
 #include <android/log.h>
 #else
 #include "printf_logger.h"

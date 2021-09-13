@@ -18,7 +18,7 @@ set(QVR_VERSION_ID FRN)
 # Build options
 # ----------------------------------------------------------------------------
 
-option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
+#option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
 
 # ----------------------------------------------------------------------------
 # Other 3rd-party libraries/tools

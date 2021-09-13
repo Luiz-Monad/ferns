@@ -24,8 +24,8 @@ endforeach()
 
 # --- zlib (required) ---
 find_package(ZLIB REQUIRED)
-if(ZLIB_FOUND AND ANDROID)
-  if(ZLIB_LIBRARIES MATCHES "/usr/(lib|lib32|lib64)/libz.so$")
+if(ZLIB_FOUND)
+  if(ANDROID AND ZLIB_LIBRARIES MATCHES "/usr/(lib|lib32|lib64)/libz.so$")
     set(ZLIB_LIBRARIES z)
   endif()
   set(HAVE_ZLIB YES)

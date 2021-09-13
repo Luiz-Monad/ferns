@@ -32,10 +32,10 @@
   >+------------<--------------------------------------------------+
   |                                                                |
   |                                                                |
-  |<- - - -border_size - - ->¦                                     |
-  |                          ¦                                     |
-  |                          ¦                                     |
-  |             inner_border ¦                                     |
+  |<- - - -border_size - - ->|                                     |
+  |                          |                                     |
+  |                          |                                     |
+  |             inner_border |                                     |
   |            >+-----------<+------------------------+            |
   |             |                                     |            |
   |             |                                     |            |
@@ -47,9 +47,9 @@
   |             |            |             |          |            |
   |             |            |             |          |            |
   |             |            |             |          |            |
-  ¦             ¦            ¦             ¦          ¦            ¦
-  ¦                                                                ¦
-  ¦<- total_width - - - - - - - - - - - - - - - - - - - - - - - - >¦
+  |             |            |             |          |            |
+  |                                                                |
+  |<- total_width - - - - - - - - - - - - - - - - - - - - - - - - >|
 
 
   full_images[k]->width  = total_width
@@ -73,7 +73,7 @@ class fine_gaussian_pyramid
   fine_gaussian_pyramid(int type, char * image_name, int outer_border, int number_of_octaves, int inner_border = 0);
 
   ~fine_gaussian_pyramid();
-  
+
   bool load_image(char * image_name);
   bool load_image(char * image_name, int i);
   void set_image(const IplImage * image);
