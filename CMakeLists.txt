@@ -5,6 +5,8 @@
 cmake_minimum_required(VERSION 3.20)
 cmake_policy(VERSION 3.20)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/portfile.cmake)
+
 enable_language(CXX C)
 project(Ferns VERSION "1.0.0" LANGUAGES CXX C)
 
