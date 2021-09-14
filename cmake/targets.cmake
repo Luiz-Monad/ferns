@@ -32,7 +32,7 @@ function(qvr_install_target TGT)
   # Deploy the public includes.
   install(
     FILES ${TGT_PUB_INC}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${TGT}
   )
 
   # Deploy the targets to a script.
