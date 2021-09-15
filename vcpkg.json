@@ -1,12 +1,22 @@
 {
-  "name": "ferns",
-  "version-string": "1.0.0",
-  "homepage": "http://cvlab.epfl.ch/software/ferns/index.php",
-  "description": "Ferns Based Matching && Tracking",
-  "dependencies": [
-    "opencv4-local",
-    "zlib"
-  ],
-  "default-features": [],
-  "features": []
+    "name": "ferns",
+    "version-string": "1.0.0",
+    "homepage": "http://cvlab.epfl.ch/software/ferns/index.php",
+    "description": "Ferns Based Matching && Tracking",
+    "dependencies": [
+        {
+            "name": "vcpkg-cmake",
+            "host": true
+        },
+        {
+            "name": "vcpkg-cmake-config",
+            "host": true
+        },
+        "pmake-cmake-targets",
+        "pmake-cmake-dashboard",
+        "opencv4-local",
+        "zlib"
+    ],
+    "default-features": [],
+    "features": []
 }

@@ -73,8 +73,8 @@ target_link_libraries(
 # CMake Installation.
 # ----------------------------------------------------------------------------
 
-include(${QVR_ROOT_DIR}/cmake/targets.cmake)
-qvr_install_target(
+find_package(pmake-cmake-targets)
+pmake_target_install(
   ${TGT}
   PUB_INC ${TGT_PUB_INC}
   LIB ${TGT_LIB})
