@@ -2,25 +2,15 @@
 #  Target
 # ----------------------------------------------------------------------------
 
-set(TGT frns.3rdparty)
-set(TGT_NS Ferns)
-set(TGT_FILE 3rdparty)
+set(_TGT frns.3rdparty)
+set(_TGT_NS Ferns)
 
-if((NOT TARGET ${TGT}) AND (NOT TARGET ${TGT_NS}::${TGT}))
-
-  include(cmake/targets.cmake)
-  qvr_install_dependency(${TGT} NS ${TGT_NS} FILE ${TGT_FILE})
-
-endif()
+include(cmake/targets.cmake)
+qvr_target_create(${_TGT} NS ${_TGT_NS})
 
 # ----------------------------------------------------------------------------
 #  Detect 3rd-party libraries (VCPKG)
 # ----------------------------------------------------------------------------
-
-# Make all local VCPKG available
-foreach(PREFIX ${CMAKE_PREFIX_PATH})
-  list(APPEND CMAKE_MODULE_PATH ${PREFIX} ${PREFIX}/share)
-endforeach()
 
 # --- zlib (required) ---
 find_package(ZLIB REQUIRED)
@@ -29,12 +19,12 @@ if(ZLIB_FOUND)
     set(ZLIB_LIBRARIES z)
   endif()
   set(HAVE_ZLIB YES)
-  target_link_libraries(${TGT} INTERFACE ZLIB::ZLIB)
+  qvr_target_link_libraries(${_TGT} INTERFACE ZLIB::ZLIB)
 endif()
 
 # --- opencv (required) ---
 find_package(LocalOpenCV REQUIRED)
 if(OpenCV_FOUND)
   set(HAVE_OpenCV YES)
-  target_link_libraries(${TGT} INTERFACE OpenCV::OpenCV)
+  qvr_target_link_libraries(${_TGT} INTERFACE OpenCV::opencv)
 endif()
